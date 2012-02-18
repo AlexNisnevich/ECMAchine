@@ -165,7 +165,7 @@ function evaluate(sexp, environment) {
 					'environment': environment
 				}
 			
-			// Misc
+			// Misc Lisp
 			case 'quote':
 				return args[0];
 			case 'begin':
@@ -173,6 +173,17 @@ function evaluate(sexp, environment) {
 					evaluate(args[i], environment);
 				}
 				return evaluate(args[args.length - 1], environment);
+			
+			// Filesystem
+			case 'ls':
+				var fileNames = [];
+				var fs = environment['__fileSystem'];
+				var dir = environment['__currentDir'];
+				fs[dir].forEach(function (file) {
+					console.log(file);
+					fileNames.push(file.name);
+				});
+				return fileNames;
 			
 			default:
 				// Find function in environment and evaluate

@@ -10,7 +10,14 @@
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     <script>
     var globalEnvironment = {
-    	'__fileSystem': {}
+    	'__fileSystem': {
+    		'/': [{
+    			'name': 'README',
+    			'type': 'text',
+    			'contents': 'blahblahblah'
+    		}]
+    	},
+    	'__currentDir': '/'
     };
     
 	jQuery(document).ready(function($) {
