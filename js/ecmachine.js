@@ -288,6 +288,25 @@ function evaluate(sexp, environment, terminal) {
 				}
 				environment['__fileSystem'][dir][args[0]].contents += (file.contents != '' ? '\n' : '') + args[1];
 				return;
+			case 'mv':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				return;
+			case 'cp':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				return;
+			case 'rm':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
+				var file = fs[dir][args[0]];
+				if (file === undefined) {
+					throw 'Error: file/directory "' + args[0] + '" does not exist';
+				} else {
+					if (file.type = 'dir') {
+						var dirPath = calculatePath(dir, args[0]);
+						delete environment['__fileSystem'][dirPath];
+					}
+					delete environment['__fileSystem'][dir][args[0]];
+				}
+				return;
 			
 			// Misc ECMAchine commands
 			case 'help':
@@ -296,13 +315,17 @@ function evaluate(sexp, environment, terminal) {
 					'\nThe following file-system commands are supported:' +
 						'\n\t (ls)                   Lists the contents of the current directory' +
 						'\n\t (cd [[i;;]path])              Navigates to another directory' +
+						'\n\t (path [[i;;]dir1 dir2 ...])   Constructs a path string [[i;;](e.g. dir1/dir2)] from a list of subdirectories' +
 						'\n\t (read [[i;;]filename])        Displays the contents of a file' +
 						'\n\t (exec [[i;;]filename])        Executes a LISP file' +
 						'\n\t (mkdir [[i;;]name])           Creates a new directory' +
 						'\n\t (new [[i;;]name])             Creates a new file' +
 						'\n\t (save [[i;;]name text])       Saves text to a file, replacing current contents if the file already exists' +
 						'\n\t (append [[i;;]name text])     Appends text to an existing file' +
+						'\n\t (rm [[i;;]filename])        	Removes a file or directory' +
 						'\n\t (help)                 Displays this help screen';
+			case 'path':
+				return args.join('/');
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:
