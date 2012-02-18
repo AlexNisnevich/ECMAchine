@@ -206,10 +206,19 @@ function evaluate(sexp, environment, terminal) {
 				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
-				return "'" + new Array(fs[dir][args[0]].contents);
+				var contents = fs[dir][args[0]].contents;
+				return contents;
+			case 'exec':
+				var contents = parse(fs[dir][args[0]].contents);
+				return evaluate(contents, globalEnvironment);
+			case 'mkdir':
+				var newDirPath = calculatePath(dir, args[0]);
+				environment['__fileSystem'][dir][args[0]] = { 'type': 'dir' };
+				environment['__fileSystem'][newDirPath] = {};
+				return;
 			
+			// Not a built-in function: find function in environment and evaluate
 			default:
-				// Find function in environment and evaluate
 				sexp[0] = evaluate(environment[func], environment);
 				return evaluate(sexp, environment);
 		}
