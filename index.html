@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="js/jquery-1.7.1.min.js"></script>
+    <script src="js/jquery.mousewheel-min.js"></script>
+    <script src="js/jquery.terminal-0.4.7.js"></script>
+    <script src="js/ecmachine.js"></script>
+    <link href="css/jquery.terminal.css" rel="stylesheet"/>
+    <script>
+    var globalEnvironment = {};
+    
+	jQuery(document).ready(function($) {
+	    $(document.documentElement).terminal(function(command, term) {
+	        if (command !== '') {
+	            var result = evaluate(parse(command), globalEnvironment);
+	            if (result !== undefined) {
+	                term.echo(String(result));
+	            }
+	        } else {
+	           term.echo('');
+	        }
+		}, {
+	        greetings: 'Welcome to the ECMAchine!',
+	        name: 'ecmachine',
+	        height: 200,
+	        prompt: 'guest>'
+		});
+	    $('body').css('display', 'none');
+	});
+    </script>
+  </head>
+<body>
+</body>
