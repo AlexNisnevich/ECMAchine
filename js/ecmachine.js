@@ -56,15 +56,17 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp, environment, terminal) {
+function evaluate(sexp, environment, term) {
 	var fs = environment['__fileSystem'];
 	var dir = environment['__currentDir'];
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
 			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote',
-		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help'
+		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help', 'append', 'path', 
+			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'doNothing',
+		'processes', 'start', 'kill', 'overlay'
 	];
-	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map'];
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'start'];
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -92,7 +94,7 @@ function evaluate(sexp, environment, terminal) {
 		var args = [];
 		for (var i = 1; i < sexp.length; i++) {
 			var evaluatedArg = evaluate(sexp[i], environment);
-			if (evaluatedArg) {
+			if (evaluatedArg !== undefined) {
 				args.push(evaluatedArg);
 			} else {
 				throw 'Error: Cannot evaluate token "' + sexp[i] + '"';
@@ -231,7 +233,7 @@ function evaluate(sexp, environment, terminal) {
 					throw 'Error: path "' + newPath + '" does not exist';
 				}
 				environment['__currentDir'] = newPath;
-				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
+				term.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
@@ -289,10 +291,54 @@ function evaluate(sexp, environment, terminal) {
 				environment['__fileSystem'][dir][args[0]].contents += (file.contents != '' ? '\n' : '') + args[1];
 				return;
 			case 'mv':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
+				var file = fs[dir][args[0]];
+				var pathSplit = args[1].split('/');
+				var newPath = calculatePath(dir, args[1]);
+				var newName = pathSplit[pathSplit.length - 1];
+				var newFolderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				if (file === undefined) {
+					throw 'Error: file/directory "' + args[0] + '" does not exist';
+				} else if (fs[newFolderPath] === undefined) {
+					throw 'Error: the path "' + newFolderPath + '" does not exist';
+				} else {
+					if (file.type == 'dir') {
+						var oldPath = calculatePath(dir, args[0]);
+						environment['__fileSystem'][newPath] = fs[oldPath];
+						delete environment['__fileSystem'][oldPath];
+					} else {
+						var contents = file.contents;
+						delete environment['__fileSystem'][dir][args[0]];
+						environment['__fileSystem'][newFolderPath][newName] = {
+							'type': 'file',
+							'contents': contents
+						}
+					}
+				}
 				return;
 			case 'cp':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				var file = fs[dir][args[0]];
+				var pathSplit = args[1].split('/');
+				var newPath = calculatePath(dir, args[1]);
+				var newName = pathSplit[pathSplit.length - 1];
+				var newFolderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				if (file === undefined) {
+					throw 'Error: file/directory "' + args[0] + '" does not exist';
+				} else if (fs[newFolderPath] === undefined) {
+					throw 'Error: the path "' + newFolderPath + '" does not exist';
+				} else {
+					if (file.type == 'dir') {
+						var oldPath = calculatePath(dir, args[0]);
+						environment['__fileSystem'][newPath] = fs[oldPath];
+					} else {
+						var contents = file.contents;
+						environment['__fileSystem'][newFolderPath][newName] = {
+							'type': 'file',
+							'contents': contents
+						}
+					}
+				}
 				return;
 			case 'rm':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
@@ -300,13 +346,21 @@ function evaluate(sexp, environment, terminal) {
 				if (file === undefined) {
 					throw 'Error: file/directory "' + args[0] + '" does not exist';
 				} else {
-					if (file.type = 'dir') {
+					if (file.type == 'dir') {
 						var dirPath = calculatePath(dir, args[0]);
 						delete environment['__fileSystem'][dirPath];
 					}
 					delete environment['__fileSystem'][dir][args[0]];
 				}
 				return;
+			case 'file?':
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				return (fs[folderPath][fileName] !== undefined && fs[folderPath][fileName].type == 'file');
+			case 'dir?':
+				var folderPath = calculatePath(dir, args[0]);
+				return (fs[folderPath] !== undefined);
 			
 			// Misc ECMAchine commands
 			case 'help':
@@ -322,10 +376,89 @@ function evaluate(sexp, environment, terminal) {
 						'\n\t (new [[i;;]name])             Creates a new file' +
 						'\n\t (save [[i;;]name text])       Saves text to a file, replacing current contents if the file already exists' +
 						'\n\t (append [[i;;]name text])     Appends text to an existing file' +
-						'\n\t (rm [[i;;]filename])        	Removes a file or directory' +
-						'\n\t (help)                 Displays this help screen';
+						'\n\t (mv [[i;;]filename newpath])  Moves a file or directory to a new location' +
+						'\n\t (cp [[i;;]filename newpath])  Copies a file or directory to a new location' +
+						'\n\t (rm [[i;;]filename])          Removes a file or directory' +
+						'\n\t (file? [[i;;]path])           Returns whether there is a file at the given path' +
+						'\n\t (dir? [[i;;]path])            Returns whether there is a directory at the given path' +
+						'\n\t (time)                 Displays the current time' + 
+						'\n\t (do-nothing)			 Dummy command' +
+						'\n\t (help)                 Displays this help screen' +
+					'\nThe following commands for dealing with processes are supported:' +
+						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
+						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate' +
+						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
+						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at [[i;;](x,y)] position on the screen'
+						;
 			case 'path':
 				return args.join('/');
+			case 'time':
+				var date = new Date();
+				return new Array(date.getHours(), date.getMinutes(), date.getSeconds());
+			case 'do-nothing':
+				return;
+			
+			// For processes
+			case 'processes':
+				var procs = [];
+				for (var pid = 0; pid < processes.length; pid++) {
+					if (!processes[pid].terminated) {
+						procs.push(new Array(pid, processes[pid].name));
+					}
+				}
+				return procs;
+			case 'start':
+				// get program
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				var file = fs[dir][args[0]];
+				if (file === undefined) {
+					throw 'Error: file "' + args[0] + '" does not exist';
+				} else if (file.type == 'dir') {
+					throw 'Error: "' + args[0] + '" is a directory';
+				}
+				var contents = parse(file.contents);
+				
+				// start interval
+				var interval = setInterval(function (term) {
+					var result = evaluate(contents, globalEnvironment);
+					if (result !== undefined) {
+						term.echo(result);
+						$(document).scrollTop($(document).height());
+					}
+				}, evaluate(args[1], environment), term);
+				
+				// add to process list
+				processes.push({
+					'name': args[0],
+					'process': interval,
+					'code': file.contents,
+					'terminated': false
+				});
+				
+				return;
+			case 'kill':
+				if (processes[args[0]] === undefined) {
+					throw 'There is no process with PID ' + args[0];
+				}
+				clearInterval(processes[args[0]].process);
+				processes[args[0]].terminated = true;
+				return;
+			case 'overlay': // (overlay txt x y id)
+				var name = args[3], txt = args[0], x = args[1], y = args[2];
+				$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any
+				var overlay = $('<div>').attr('id', name).appendTo('#overlays');
+				overlay.text('' + txt);
+				if (x >= 0) {
+					overlay.css('left', x);
+				} else {
+					overlay.css('right', -x);
+				}
+				if (y >= 0) {
+					overlay.css('top', y);
+				} else {
+					overlay.css('bottom', -y);
+				}
+				return;
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:

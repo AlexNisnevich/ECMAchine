@@ -63,4 +63,10 @@
 .clear {
     clear: both;
 }
-                    
+
+#overlays div {
+	color: #666;
+	position: fixed;
+	padding: 5px;
+	border: 1px solid #666;
+}    
