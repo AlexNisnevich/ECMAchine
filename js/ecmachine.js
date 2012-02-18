@@ -58,6 +58,7 @@ function parse(sexp) {
  */
 function evaluate(sexp, environment, terminal) {
 	var fs = environment['__fileSystem'];
+	var dir = environment['__currentDir'];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda'];
 	
 	if (typeof sexp != 'object') { // atom
@@ -192,20 +193,20 @@ function evaluate(sexp, environment, terminal) {
 			// Filesystem
 			case 'ls':
 				var fileNames = [];
-				var dir = environment['__currentDir'];
-				fs[dir].forEach(function (file) {
-					fileNames.push(file.name);
-				});
+				for (fname in fs[dir]) {
+					fileNames.push(fname);
+				}
 				return fileNames;
-				
 			case 'cd':
-				var newPath = calculatePath(environment['__currentDir'], args[0]);
+				var newPath = calculatePath(dir, args[0]);
 				if (fs[newPath] === undefined) {
 					throw 'Error: path "' + newPath + '" does not exist';
 				}
 				environment['__currentDir'] = newPath;
 				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
+			case 'read':
+				return "'" + new Array(fs[dir][args[0]].contents);
 			
 			default:
 				// Find function in environment and evaluate

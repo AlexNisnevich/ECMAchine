@@ -1,14 +1,17 @@
 var globalEnvironment = {
 	'__fileSystem': {
-		'/': [{
-			'name': 'README',
-			'type': 'text',
-			'contents': 'blahblahblah'
-		}, {
-			'name': 'usr',
-			'type': 'dir'
-		}],
-		'/usr': []
+		'/': {
+			'README': {
+				'type': 'text',
+				'contents': 'blahblahblah'
+			},
+			'usr': {
+				'type': 'dir'
+			}
+		},
+		'/usr': {
+			
+		}
 	},
 	'__currentDir': '/'
 };
