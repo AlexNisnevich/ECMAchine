@@ -7,9 +7,9 @@ var globalEnvironment = {
 				'type': 'file',
 				'contents': 'ECMAchine by Alex Nisnevich. Thanks to Jakub Jankiewicz for his jQuery Terminal plugin (distributed under LGPL).'
 			},
-			'LICENSE': {
+			'musings': {
 				'type': 'file',
-				'contents': 'ECMAchine by Alex Nisnevich.'
+				'contents': 'Biggest hackathon is best hackathon.'
 			},
 			'twoplusthree': {
 				'type': 'file',

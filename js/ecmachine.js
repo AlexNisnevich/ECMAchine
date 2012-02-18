@@ -68,12 +68,12 @@ function evaluate(sexp, environment, term) {
 	var dir = environment['__currentDir'];
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
-			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote',
+			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
 		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help', 'append', 'path', 
-			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'doNothing',
-		'processes', 'start', 'kill', 'overlay'
+			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'do-nothing',
+		'processes', 'start', 'peek', 'kill', 'overlay'
 	];
-	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'start'];
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'filter', 'start'];
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -220,6 +220,19 @@ function evaluate(sexp, environment, term) {
 						return evaluate(new Array(fn, elt), environment, term);
 					} catch (err) {
 						return "'" + new Array(err);
+					}
+				});
+			case 'filter':
+				var cond = evaluate(args[0], environment, term);
+				var lst = evaluate(args[1], environment, term);
+				return lst.filter(function (elt) {
+					if (typeof elt == 'string' && elt[0] != "'") {
+						elt = "'" + elt; // make sure string literals are quoted
+					}
+					try {
+						return evaluate(new Array(cond, elt), environment, term);
+					} catch (err) {
+						false;
 					}
 				});
 			
@@ -369,7 +382,7 @@ function evaluate(sexp, environment, term) {
 			// Misc ECMAchine commands
 			case 'help':
 				return 'The following LISP commands are supported:' + 
-						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, list, map, not, or, quote' + 
+						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, filter, if, lambda, length, list, map, not, or, quote' + 
 					'\nThe following file-system commands are supported:' +
 						'\n\t (ls)                   Lists the contents of the current directory' +
 						'\n\t (cd [[i;;]path])              Navigates to another directory' +
@@ -391,6 +404,7 @@ function evaluate(sexp, environment, term) {
 					'\nThe following commands for dealing with processes are supported:' +
 						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
 						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate (in ms)' +
+						'\n\t (peek [[i;;]pid])             Shows the code for the process with the specified PID' +
 						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
 						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
 						;
@@ -440,13 +454,18 @@ function evaluate(sexp, environment, term) {
 				});
 				
 				return;
+			case 'peek':
+				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
+					throw 'There is no process with PID ' + args[0];
+				}
+				return processes[args[0]].code;
 			case 'kill':
-				if (processes[args[0]] === undefined) {
+				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 					throw 'There is no process with PID ' + args[0];
 				}
 				clearInterval(processes[args[0]].process);
 				processes[args[0]].terminated = true;
-				return;
+				return new Array('Process with PID ' + args[0] + ' (' + processes[args[0]].name + ') terminated');
 			case 'overlay': // (overlay txt x y id)
 				var name = args[3], txt = args[0], x = args[1], y = args[2];
 				$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any
