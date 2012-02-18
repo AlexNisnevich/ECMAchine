@@ -50,19 +50,41 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function eval(sexp) {
-	if (typeof sexp != Array) { // atom
+function evaluate(sexp) {
+	if (typeof sexp != 'object') { // atom
 		return sexp;
 	}
 	
 	var func = sexp[0];
 	var args = [];
 	for (var i = 1; i < sexp.length; i++) {
-		args.push(eval(sexp[i]));
+		args.push(evaluate(sexp[i]));
 	}
-	console.log("function: " + func);
-	console.log("arguments: " + args);
-	return "[FUNC_CALL]";
+	
+	switch(func) {
+		// Arithmetic
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+			return eval(args.join(func));
+			
+		// Comparisons
+		case '=':
+			return (args[0] == args[1]);
+		case '>':
+		case '<':
+		case '>=':
+		case '<=':
+		case '==':
+		case '!=':
+			return eval(args[0] + func + args[1]);
+		
+		default:
+			console.log('Unrecognized method: ' + func);
+			return 'Error';
+			break;
+	}
 }
 
 // (+ (* 2 5) 3) => ['+', ['*', 2, 5], 3]
