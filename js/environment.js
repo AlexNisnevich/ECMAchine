@@ -5,7 +5,11 @@ var globalEnvironment = {
 		'/': {
 			'README': {
 				'type': 'file',
-				'contents': 'blahblahblah'
+				'contents': 'ECMAchine by Alex Nisnevich. Thanks to Jakub Jankiewicz for his jQuery Terminal plugin (distributed under LGPL).'
+			},
+			'LICENSE': {
+				'type': 'file',
+				'contents': 'ECMAchine by Alex Nisnevich.'
 			},
 			'twoplusthree': {
 				'type': 'file',

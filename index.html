@@ -13,7 +13,7 @@
     jQuery(document).ready(function($) {
 	    $(document.documentElement).terminal(function(command, term) {
 	        if (command !== '') {
-	            var result = evaluate(parse(command), globalEnvironment, term);
+	        	var result = evaluate(parse(command), globalEnvironment, term);
 	            if (result !== undefined) {
 	                term.echo(String(result));
 	            }
@@ -22,7 +22,7 @@
 	        }
 	        $(document).scrollTop($(document).height());
 		}, {
-	        greetings: 'Welcome to the ECMAchine! Enter (help) for a list of commands.',
+	        greetings: 'Welcome to the ECMAchine! It\'s a little shell that dreams of being an operating system. Enter (help) for a list of commands.',
 	        name: 'terminal',
 	        height: 200,
 	        prompt: 'ecmachine:/ guest$'

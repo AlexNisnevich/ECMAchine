@@ -41,6 +41,11 @@ function parse(sexp) {
     
     sexp = sexp.replace(/\s+/g, " "); // first, trim whitespace!
 	
+	// do ( and ) match?
+	if (sexp.split('(').length != sexp.split(')').length) { 
+		throw 'Error: Parentheses do not match'; 
+	} 	
+	
 	if (sexp[0] == '(') {
 		var parsed_sexp = [];
 		var tokens = tokenize(sexp);
@@ -385,7 +390,7 @@ function evaluate(sexp, environment, term) {
 						'\n\t (help)                 Displays this help screen' +
 					'\nThe following commands for dealing with processes are supported:' +
 						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
-						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate' +
+						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate (in ms)' +
 						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
 						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
 						;
@@ -491,5 +496,3 @@ function calculatePath(currentPath, dir) {
 		return (newPath != '') ? newPath : '/';
 	}
 }
-
-// (+ (* 2 5) 3) => ['+', ['*', 2, 5], 3]
