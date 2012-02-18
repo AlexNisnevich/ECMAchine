@@ -412,7 +412,10 @@ function evaluate(sexp, environment, term) {
 				return args.join('/');
 			case 'time':
 				var date = new Date();
-				return new Array(date.getHours(), date.getMinutes(), date.getSeconds());
+                if (args[0] == null) 
+                   return new Array("Unix time: " + date.getTime());
+                else 
+				   return new Array(date.getHours(), date.getMinutes(), date.getSeconds());
 			case 'do-nothing':
 				return;
 			
