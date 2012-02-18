@@ -190,6 +190,14 @@ function evaluate(sexp, environment, terminal) {
 				}
 				return evaluate(args[args.length - 1], environment);
 			
+			// Higher-order functions
+			case 'map':
+				var fn = args[0];
+				var lst = args[1];
+				return lst.map(function (elt) {
+					return evaluate(new Array(fn, elt), environment);
+				});
+			
 			// Filesystem
 			case 'ls':
 				var fileNames = [];
@@ -250,7 +258,8 @@ function evaluate(sexp, environment, terminal) {
 			
 			// Misc ECMAchine commands
 			case 'help':
-				return 'The following LISP commands are supported: \n \t +, -, *, /, >, <, =, and, car, cdr, cond, cons, define, if, lambda, list, not, or' + 
+				return 'The following LISP commands are supported:' + 
+						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, list, map, not, or, quote' + 
 					'\nThe following file-system commands are supported:' +
 						'\n\t (ls)                   Lists the contents of the current directory' +
 						'\n\t (cd [[i;;]path])              Navigates to another directory' +
