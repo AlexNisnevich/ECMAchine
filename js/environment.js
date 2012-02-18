@@ -39,8 +39,8 @@ var globalEnvironment = {
 				'type': 'file',
 				'contents': "(begin" +
 						  "\n     (cd '/)" +
-						  "\n     (map rm (ls))" +
-						  "\n     (map kill (processes)))"
+						  "\n     (map rm (ls)))"
+					   // "\n     (map kill (processes)))" // doesn't work atm
 			}
 		},
 		'/usr': {
