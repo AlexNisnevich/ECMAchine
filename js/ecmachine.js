@@ -64,7 +64,7 @@ function evaluate(sexp, environment, terminal) {
 			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote',
 		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help'
 	];
-	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda'];
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map'];
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -103,15 +103,15 @@ function evaluate(sexp, environment, terminal) {
 	if (func.lambda) {
 		// Lambda function
 		
-		environment = func.environment;
+		lambdaEnvironment = func.environment;
 		if (func.arguments.length > args.length) {
 			throw 'Error: Not enough arguments passed to lambda: expected ' + func.arguments + ' but received ' + args;
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
-			environment[func.arguments[i]] = args[i];
+			lambdaEnvironment[func.arguments[i]] = evaluate(args[i], environment);
 		}
-		return evaluate(func.body, environment);
+		return evaluate(func.body, lambdaEnvironment);
 	} else if (typeof func == 'string') {
 		// Built-in function
 		
@@ -201,8 +201,10 @@ function evaluate(sexp, environment, terminal) {
 			
 			// Higher-order functions
 			case 'map':
-				var fn = args[0];
-				var lst = args[1];
+				console.log(args);
+				var fn = evaluate(args[0], environment);
+				var lst = evaluate(args[1], environment);
+				console.log(lst);
 				return lst.map(function (elt) {
 					if (typeof elt == 'string' && elt[0] != "'") {
 						elt = "'" + elt; // make sure string literals are quoted
@@ -268,7 +270,7 @@ function evaluate(sexp, environment, terminal) {
 					throw 'Error: "' + args[0] + '" already exists';
 				}
 				var newDirPath = calculatePath(dir, args[0]);
-				environment['__fileSystem'][dir][args[0]] = { 'type': 'file' };
+				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': '' };
 				return;
 			case 'save':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
@@ -277,6 +279,14 @@ function evaluate(sexp, environment, terminal) {
 					throw 'Error: "' + args[0] + '" is a directory';
 				}
 				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': args[1] };
+				return;
+			case 'append':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
+				var file = fs[dir][args[0]];
+				if (file === undefined) {
+					throw 'Error: file "' + args[0] + '" does not exist';
+				}
+				environment['__fileSystem'][dir][args[0]].contents += (file.contents != '' ? '\n' : '') + args[1];
 				return;
 			
 			// Misc ECMAchine commands
@@ -290,7 +300,8 @@ function evaluate(sexp, environment, terminal) {
 						'\n\t (exec [[i;;]filename])        Executes a LISP file' +
 						'\n\t (mkdir [[i;;]name])           Creates a new directory' +
 						'\n\t (new [[i;;]name])             Creates a new file' +
-						'\n\t (save [[i;;]name contents])   Saves text to a file' +
+						'\n\t (save [[i;;]name text])       Saves text to a file, replacing current contents if the file already exists' +
+						'\n\t (append [[i;;]name text])     Appends text to an existing file' +
 						'\n\t (help)                 Displays this help screen';
 			
 			// Not a built-in function: find function in environment and evaluate
