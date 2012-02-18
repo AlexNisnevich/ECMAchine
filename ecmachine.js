@@ -1,3 +1,4 @@
+
 /*
  * Parses S-expression into a nested list
  */
@@ -44,6 +45,24 @@ function parse(sexp) {
 	} else {
 		return sexp;
 	}
+}
+
+/*
+ * Evaluates a parsed S-expression, Lisp-style
+ */
+function eval(sexp) {
+	if (typeof sexp != Array) { // atom
+		return sexp;
+	}
+	
+	var func = sexp[0];
+	var args = [];
+	for (var i = 1; i < sexp.length; i++) {
+		args.push(eval(sexp[i]));
+	}
+	console.log("function: " + func);
+	console.log("arguments: " + args);
+	return "[FUNC_CALL]";
 }
 
 // (+ (* 2 5) 3) => ['+', ['*', 2, 5], 3]
