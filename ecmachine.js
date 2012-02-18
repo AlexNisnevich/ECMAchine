@@ -50,17 +50,18 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp) {
-	var controlFlowStatements = ['if', 'cond', 'quote'];
+function evaluate(sexp, environment) {
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda'];
 	
 	if (typeof sexp != 'object') { // atom
-		switch (sexp) {
-			case '#t':
-				return true;
-			case '#f':
-				return false;
-			default:
-				return sexp;
+		if (sexp == '#t') {
+			return true;
+		} else if (sexp == '#f') {
+			return false;
+		} else if (typeof sexp == 'number') {
+			return sexp;
+		} else { // variable
+			return environment[sexp];
 		}
 	}
 	
@@ -73,7 +74,7 @@ function evaluate(sexp) {
 		// evaluate arguments
 		var args = [];
 		for (var i = 1; i < sexp.length; i++) {
-			args.push(evaluate(sexp[i]));
+			args.push(evaluate(sexp[i], environment));
 		}
 	}
 	
@@ -106,20 +107,20 @@ function evaluate(sexp) {
 			
 		// Conditionals
 		case 'if':
-			if (evaluate(args[0])) {
-				return evaluate(args[1]);
+			if (evaluate(args[0], environment)) {
+				return evaluate(args[1], environment);
 			} else {
-				return evaluate(args[2]);
+				return evaluate(args[2], environment);
 			}
 		case 'cond':
 			for (var i = 0; i < args.length; i++) {
 				var condBlock = args[i];
-				if (evaluate(condBlock[0])) {
-					return evaluate(condBlock[1]);
+				if (evaluate(condBlock[0], environment)) {
+					return evaluate(condBlock[1], environment);
 				}
 			}
 		
-		// Lists
+		// List operations
 		case 'cons':
 			return new Array(args[0], args[1]);
 		case 'car':
@@ -131,9 +132,18 @@ function evaluate(sexp) {
 		case 'list':
 			return args;
 		
+		// lambdas and stuff
+		case 'define':
+			environment[args[0]] = args[1];
+		
 		// Misc
 		case 'quote':
 			return args[0];
+		case 'begin':
+			for (var i = 0; i < args.length - 1; i++) {
+				evaluate(args[i], environment);
+			}
+			return evaluate(args[args.length - 1], environment);
 		
 		default:
 			console.log('Unrecognized method: ' + func);
