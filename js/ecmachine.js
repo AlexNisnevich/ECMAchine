@@ -59,6 +59,11 @@ function parse(sexp) {
 function evaluate(sexp, environment, terminal) {
 	var fs = environment['__fileSystem'];
 	var dir = environment['__currentDir'];
+	var builtInFunctions = [
+		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
+			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote',
+		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help'
+	];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda'];
 	
 	if (typeof sexp != 'object') { // atom
@@ -70,6 +75,8 @@ function evaluate(sexp, environment, terminal) {
 			return sexp;
 		} else if (sexp[0] == "'") { // string literal
 			return sexp.slice(1);
+		} else if (builtInFunctions.indexOf(sexp) > -1) { // built-in function
+			return sexp;
 		} else { // variable
 			return environment[sexp];
 		}
@@ -189,13 +196,23 @@ function evaluate(sexp, environment, terminal) {
 					evaluate(args[i], environment);
 				}
 				return evaluate(args[args.length - 1], environment);
+			case 'length':
+				return args[0].length;
 			
 			// Higher-order functions
 			case 'map':
 				var fn = args[0];
 				var lst = args[1];
 				return lst.map(function (elt) {
-					return evaluate(new Array(fn, elt), environment);
+					if (typeof elt == 'string' && elt[0] != "'") {
+						elt = "'" + elt; // make sure string literals are quoted
+					}
+					console.log(new Array(fn, elt));
+					try {
+						return evaluate(new Array(fn, elt), environment);
+					} catch (err) {
+						return "'" + new Array(err);
+					}
 				});
 			
 			// Filesystem
@@ -206,6 +223,7 @@ function evaluate(sexp, environment, terminal) {
 				}
 				return fileNames;
 			case 'cd':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var newPath = calculatePath(dir, args[0]);
 				if (fs[newPath] === undefined) {
 					throw 'Error: path "' + newPath + '" does not exist';
@@ -214,6 +232,7 @@ function evaluate(sexp, environment, terminal) {
 				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var file = fs[dir][args[0]];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
@@ -223,6 +242,7 @@ function evaluate(sexp, environment, terminal) {
 				var contents = file.contents;
 				return contents;
 			case 'exec':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var file = fs[dir][args[0]];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
@@ -232,6 +252,7 @@ function evaluate(sexp, environment, terminal) {
 				var contents = parse(file.contents);
 				return evaluate(contents, globalEnvironment);
 			case 'mkdir':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var newDir = fs[dir][args[0]];
 				var newDirPath = calculatePath(dir, args[0]);
 				if (newDir !== undefined) {
@@ -241,6 +262,7 @@ function evaluate(sexp, environment, terminal) {
 				environment['__fileSystem'][newDirPath] = {};
 				return;
 			case 'new':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var newFile = fs[dir][args[0]];
 				if (newFile !== undefined) {
 					throw 'Error: "' + args[0] + '" already exists';
@@ -249,6 +271,7 @@ function evaluate(sexp, environment, terminal) {
 				environment['__fileSystem'][dir][args[0]] = { 'type': 'file' };
 				return;
 			case 'save':
+				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var file = fs[dir][args[0]];
 				if (file !== undefined && file.type == 'dir') {
 					throw 'Error: "' + args[0] + '" is a directory';
@@ -259,7 +282,7 @@ function evaluate(sexp, environment, terminal) {
 			// Misc ECMAchine commands
 			case 'help':
 				return 'The following LISP commands are supported:' + 
-						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, list, map, not, or, quote' + 
+						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, list, map, not, or, quote' + 
 					'\nThe following file-system commands are supported:' +
 						'\n\t (ls)                   Lists the contents of the current directory' +
 						'\n\t (cd [[i;;]path])              Navigates to another directory' +
