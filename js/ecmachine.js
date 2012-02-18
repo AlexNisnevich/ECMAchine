@@ -1,3 +1,9 @@
+/*
+ * Modify toString behavior of lists to Lisp style
+ */
+Array.prototype.toString = function() {
+	return '(' + this.join(' ') + ')';
+};
 
 /*
  * Parses S-expression into a nested list
@@ -169,9 +175,9 @@ function evaluate(sexp, environment) {
 				return evaluate(args[args.length - 1], environment);
 			
 			default:
-				console.log('Unrecognized method: ' + func);
-				return 'Error';
-				break;
+				// Find function in environment and evaluate
+				sexp[0] = evaluate(environment[func], environment);
+				return evaluate(sexp, environment);
 		}
 	} else {
 		// Evaluate this function
