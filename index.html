@@ -7,23 +7,13 @@
     <script src="js/jquery.mousewheel-min.js"></script>
     <script src="js/jquery.terminal-0.4.7.js"></script>
     <script src="js/ecmachine.js"></script>
+    <script src="js/environment.js"></script>
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     <script>
-    var globalEnvironment = {
-    	'__fileSystem': {
-    		'/': [{
-    			'name': 'README',
-    			'type': 'text',
-    			'contents': 'blahblahblah'
-    		}]
-    	},
-    	'__currentDir': '/'
-    };
-    
-	jQuery(document).ready(function($) {
+    jQuery(document).ready(function($) {
 	    $(document.documentElement).terminal(function(command, term) {
 	        if (command !== '') {
-	            var result = evaluate(parse(command), globalEnvironment);
+	            var result = evaluate(parse(command), globalEnvironment, term);
 	            if (result !== undefined) {
 	                term.echo(String(result));
 	            }
@@ -32,9 +22,9 @@
 	        }
 		}, {
 	        greetings: 'Welcome to the ECMAchine!',
-	        name: 'ecmachine',
+	        name: 'terminal',
 	        height: 200,
-	        prompt: 'guest>'
+	        prompt: 'ecmachine:/ guest$'
 		});
 	    $('body').css('display', 'none');
 	});

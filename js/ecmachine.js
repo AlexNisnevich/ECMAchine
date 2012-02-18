@@ -56,7 +56,8 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp, environment) {
+function evaluate(sexp, environment, terminal) {
+	var fs = environment['__fileSystem'];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda'];
 	
 	if (typeof sexp != 'object') { // atom
@@ -64,8 +65,10 @@ function evaluate(sexp, environment) {
 			return true;
 		} else if (sexp == '#f') {
 			return false;
-		} else if (typeof sexp == 'number') {
+		} else if (typeof sexp == 'number') { // number
 			return sexp;
+		} else if (sexp[0] == "'") { // string literal
+			return sexp.slice(1);
 		} else { // variable
 			return environment[sexp];
 		}
@@ -80,7 +83,12 @@ function evaluate(sexp, environment) {
 		// evaluate arguments
 		var args = [];
 		for (var i = 1; i < sexp.length; i++) {
-			args.push(evaluate(sexp[i], environment));
+			var evaluatedArg = evaluate(sexp[i], environment);
+			if (evaluatedArg) {
+				args.push(evaluatedArg);
+			} else {
+				throw 'Error: Cannot evaluate token "' + sexp[i] + '"';
+			}
 		}
 	}
 	
@@ -89,7 +97,7 @@ function evaluate(sexp, environment) {
 		
 		environment = func.environment;
 		if (func.arguments.length > args.length) {
-			console.log('Error: Not enough arguments passed to lambda: expected ' + func.arguments + ' but received ' + args);
+			throw 'Error: Not enough arguments passed to lambda: expected ' + func.arguments + ' but received ' + args;
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
@@ -105,6 +113,13 @@ function evaluate(sexp, environment) {
 			case '-':
 			case '*':
 			case '/':
+				args = args.map(function (arg) {
+					if (typeof arg == 'string') { // this lets us overload + for string concatenation
+						return '"' + arg + '"';
+					} else {
+						return arg;
+					}
+				})
 				return eval(args.join(func));
 				
 			// Comparisons
@@ -177,13 +192,20 @@ function evaluate(sexp, environment) {
 			// Filesystem
 			case 'ls':
 				var fileNames = [];
-				var fs = environment['__fileSystem'];
 				var dir = environment['__currentDir'];
 				fs[dir].forEach(function (file) {
-					console.log(file);
 					fileNames.push(file.name);
 				});
 				return fileNames;
+				
+			case 'cd':
+				var newPath = calculatePath(environment['__currentDir'], args[0]);
+				if (fs[newPath] === undefined) {
+					throw 'Error: path "' + newPath + '" does not exist';
+				}
+				environment['__currentDir'] = newPath;
+				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
+				return;
 			
 			default:
 				// Find function in environment and evaluate
@@ -194,6 +216,27 @@ function evaluate(sexp, environment) {
 		// Evaluate this function
 		sexp[0] = evaluate(func, environment);
 		return evaluate(sexp, environment);
+	}
+}
+
+/*
+ * Gets new path (e.g. for 'cd' command)
+ */
+function calculatePath(currentPath, dir) {
+	if (dir == '/') {
+		return '/';
+	} else {
+		var pathComponents = currentPath.split('/');
+		var dirComponents = dir.split('/');
+		dirComponents.forEach(function (comp) {
+			if (comp == '..') {
+				pathComponents.pop();
+			} else {
+				pathComponents.push(comp);
+			}
+		});
+		var newPath = pathComponents.join('/').replace('//','/');
+		return (newPath != '') ? newPath : '/';
 	}
 }
 
