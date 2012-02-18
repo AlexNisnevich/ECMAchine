@@ -51,7 +51,7 @@ function parse(sexp) {
  * Evaluates a parsed S-expression, Lisp-style
  */
 function evaluate(sexp) {
-	var controlFlowStatements = ['if', 'cond'];
+	var controlFlowStatements = ['if', 'cond', 'quote'];
 	
 	if (typeof sexp != 'object') { // atom
 		switch (sexp) {
@@ -119,7 +119,22 @@ function evaluate(sexp) {
 				}
 			}
 		
-		// Unrecognized method
+		// Lists
+		case 'cons':
+			return new Array(args[0], args[1]);
+		case 'car':
+			var arg = args[0];
+			return arg[0];
+		case 'cdr':
+			var arg = args[0];
+			return arg.slice(1);
+		case 'list':
+			return args;
+		
+		// Misc
+		case 'quote':
+			return args[0];
+		
 		default:
 			console.log('Unrecognized method: ' + func);
 			return 'Error';
