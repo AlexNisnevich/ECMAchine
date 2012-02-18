@@ -2038,7 +2038,7 @@ function get_stack(caller) {
                     self.echo(string + ' ' + command);
                 });
             } else {
-                self.echo(prompt + ' ' +command);
+                self.echo('[[;#080;]' + prompt + '] [[;#399;]' + command + ']');
             }
         }
 
