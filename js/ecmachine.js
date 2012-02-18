@@ -248,6 +248,19 @@ function evaluate(sexp, environment, terminal) {
 				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': args[1] };
 				return;
 			
+			// Misc ECMAchine commands
+			case 'help':
+				return 'The following LISP commands are supported: \n \t +, -, *, /, >, <, =, and, car, cdr, cond, cons, define, if, lambda, list, not, or' + 
+					'\nThe following file-system commands are supported:' +
+						'\n\t (ls)                   Lists the contents of the current directory' +
+						'\n\t (cd [[i;;]path])              Navigates to another directory' +
+						'\n\t (read [[i;;]filename])        Displays the contents of a file' +
+						'\n\t (exec [[i;;]filename])        Executes a LISP file' +
+						'\n\t (mkdir [[i;;]name])           Creates a new directory' +
+						'\n\t (new [[i;;]name])             Creates a new file' +
+						'\n\t (save [[i;;]name contents])   Saves text to a file' +
+						'\n\t (help)                 Displays this help screen';
+			
 			// Not a built-in function: find function in environment and evaluate
 			default:
 				sexp[0] = evaluate(environment[func], environment);
