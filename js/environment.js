@@ -22,6 +22,14 @@ var globalEnvironment = {
 			'clock.app': {
 				'type': 'file',
 				'contents': "(overlay (time) -30 -30 'clock)"
+			},
+			'virushunter.app': {
+				'type': 'file',
+				'contents': "(if (file? (path '/ 'virus))" +
+					      "\n      (begin (cd '/)" +
+					      "\n             (rm 'virus)" +
+					      "\n             (quote (Virus removed!)))" +
+					      "\n      (do-nothing))"
 			}
 		},
 		'/usr': {

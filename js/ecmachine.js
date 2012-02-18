@@ -38,6 +38,8 @@ function parse(sexp) {
 		tokens.push(currentToken);        
     	return tokens;
     };
+    
+    sexp = sexp.replace(/\s+/g, " "); // first, trim whitespace!
 	
 	if (sexp[0] == '(') {
 		var parsed_sexp = [];
@@ -93,7 +95,7 @@ function evaluate(sexp, environment, term) {
 		// evaluate arguments
 		var args = [];
 		for (var i = 1; i < sexp.length; i++) {
-			var evaluatedArg = evaluate(sexp[i], environment);
+			var evaluatedArg = evaluate(sexp[i], environment, term);
 			if (evaluatedArg !== undefined) {
 				args.push(evaluatedArg);
 			} else {
@@ -111,7 +113,7 @@ function evaluate(sexp, environment, term) {
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
-			lambdaEnvironment[func.arguments[i]] = evaluate(args[i], environment);
+			lambdaEnvironment[func.arguments[i]] = evaluate(args[i], environment, term);
 		}
 		return evaluate(func.body, lambdaEnvironment);
 	} else if (typeof func == 'string') {
@@ -153,16 +155,16 @@ function evaluate(sexp, environment, term) {
 				
 			// Conditionals
 			case 'if':
-				if (evaluate(args[0], environment)) {
-					return evaluate(args[1], environment);
+				if (evaluate(args[0], environment, term)) {
+					return evaluate(args[1], environment, term);
 				} else {
-					return evaluate(args[2], environment);
+					return evaluate(args[2], environment, term);
 				}
 			case 'cond':
 				for (var i = 0; i < args.length; i++) {
 					var condBlock = args[i];
-					if (evaluate(condBlock[0], environment)) {
-						return evaluate(condBlock[1], environment);
+					if (evaluate(condBlock[0], environment, term)) {
+						return evaluate(condBlock[1], environment, term);
 					}
 				}
 			
@@ -195,17 +197,17 @@ function evaluate(sexp, environment, term) {
 				return args[0];
 			case 'begin':
 				for (var i = 0; i < args.length - 1; i++) {
-					evaluate(args[i], environment);
+					evaluate(args[i], environment, term);
 				}
-				return evaluate(args[args.length - 1], environment);
+				return evaluate(args[args.length - 1], environment, term);
 			case 'length':
 				return args[0].length;
 			
 			// Higher-order functions
 			case 'map':
 				console.log(args);
-				var fn = evaluate(args[0], environment);
-				var lst = evaluate(args[1], environment);
+				var fn = evaluate(args[0], environment, term);
+				var lst = evaluate(args[1], environment, term);
 				console.log(lst);
 				return lst.map(function (elt) {
 					if (typeof elt == 'string' && elt[0] != "'") {
@@ -213,7 +215,7 @@ function evaluate(sexp, environment, term) {
 					}
 					console.log(new Array(fn, elt));
 					try {
-						return evaluate(new Array(fn, elt), environment);
+						return evaluate(new Array(fn, elt), environment, term);
 					} catch (err) {
 						return "'" + new Array(err);
 					}
@@ -254,7 +256,7 @@ function evaluate(sexp, environment, term) {
 					throw 'Error: "' + args[0] + '" is a directory';
 				}
 				var contents = parse(file.contents);
-				return evaluate(contents, globalEnvironment);
+				return evaluate(contents, globalEnvironment, term);
 			case 'mkdir':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var newDir = fs[dir][args[0]];
@@ -388,7 +390,7 @@ function evaluate(sexp, environment, term) {
 						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
 						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate' +
 						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
-						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at [[i;;](x,y)] position on the screen'
+						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
 						;
 			case 'path':
 				return args.join('/');
@@ -420,12 +422,12 @@ function evaluate(sexp, environment, term) {
 				
 				// start interval
 				var interval = setInterval(function (term) {
-					var result = evaluate(contents, globalEnvironment);
+					var result = evaluate(contents, globalEnvironment, term);
 					if (result !== undefined) {
 						term.echo(result);
 						$(document).scrollTop($(document).height());
 					}
-				}, evaluate(args[1], environment), term);
+				}, evaluate(args[1], environment, term), term);
 				
 				// add to process list
 				processes.push({
@@ -462,13 +464,13 @@ function evaluate(sexp, environment, term) {
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:
-				sexp[0] = evaluate(environment[func], environment);
-				return evaluate(sexp, environment);
+				sexp[0] = evaluate(environment[func], environment, term);
+				return evaluate(sexp, environment, term);
 		}
 	} else {
 		// Evaluate this function
-		sexp[0] = evaluate(func, environment);
-		return evaluate(sexp, environment);
+		sexp[0] = evaluate(func, environment, term);
+		return evaluate(sexp, environment, term);
 	}
 }
 
