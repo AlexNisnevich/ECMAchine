@@ -205,15 +205,12 @@ function evaluate(sexp, environment, term) {
 			
 			// Higher-order functions
 			case 'map':
-				console.log(args);
 				var fn = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
-				console.log(lst);
 				return lst.map(function (elt) {
 					if (typeof elt == 'string' && elt[0] != "'") {
 						elt = "'" + elt; // make sure string literals are quoted
 					}
-					console.log(new Array(fn, elt));
 					try {
 						return evaluate(new Array(fn, elt), environment, term);
 					} catch (err) {

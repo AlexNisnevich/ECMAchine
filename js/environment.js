@@ -30,6 +30,13 @@ var globalEnvironment = {
 					      "\n             (rm 'virus)" +
 					      "\n             (quote (Virus removed!)))" +
 					      "\n      (do-nothing))"
+			},
+			'killeverything.app': {
+				'type': 'file',
+				'contents': "(begin" +
+						  "\n     (cd '/)" +
+						  "\n     (map rm (ls))" +
+						  "\n     (map kill (processes)))"
 			}
 		},
 		'/usr': {
