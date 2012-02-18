@@ -206,15 +206,46 @@ function evaluate(sexp, environment, terminal) {
 				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
-				var contents = fs[dir][args[0]].contents;
+				var file = fs[dir][args[0]];
+				if (file === undefined) {
+					throw 'Error: file "' + args[0] + '" does not exist';
+				} else if (file.type == 'dir') {
+					throw 'Error: "' + args[0] + '" is a directory';
+				}
+				var contents = file.contents;
 				return contents;
 			case 'exec':
-				var contents = parse(fs[dir][args[0]].contents);
+				var file = fs[dir][args[0]];
+				if (file === undefined) {
+					throw 'Error: file "' + args[0] + '" does not exist';
+				} else if (file.type == 'dir') {
+					throw 'Error: "' + args[0] + '" is a directory';
+				}
+				var contents = parse(file.contents);
 				return evaluate(contents, globalEnvironment);
 			case 'mkdir':
+				var newDir = fs[dir][args[0]];
 				var newDirPath = calculatePath(dir, args[0]);
+				if (newDir !== undefined) {
+					throw 'Error: "' + args[0] + '" already exists';
+				}
 				environment['__fileSystem'][dir][args[0]] = { 'type': 'dir' };
 				environment['__fileSystem'][newDirPath] = {};
+				return;
+			case 'new':
+				var newFile = fs[dir][args[0]];
+				if (newFile !== undefined) {
+					throw 'Error: "' + args[0] + '" already exists';
+				}
+				var newDirPath = calculatePath(dir, args[0]);
+				environment['__fileSystem'][dir][args[0]] = { 'type': 'file' };
+				return;
+			case 'save':
+				var file = fs[dir][args[0]];
+				if (file !== undefined && file.type == 'dir') {
+					throw 'Error: "' + args[0] + '" is a directory';
+				}
+				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': args[1] };
 				return;
 			
 			// Not a built-in function: find function in environment and evaluate
