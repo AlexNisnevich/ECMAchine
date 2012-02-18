@@ -67,8 +67,8 @@ function evaluate(sexp, environment) {
 	
 	var func = sexp[0];
 	
-	if (controlFlowStatements.indexOf(func) > -1) {
-		// don't evaluate arguments
+	if (func.lambda || controlFlowStatements.indexOf(func) > -1) {
+		// lambda or control flow statement: don't evaluate arguments
 		var args = sexp.slice(1);
 	} else {
 		// evaluate arguments
@@ -78,77 +78,105 @@ function evaluate(sexp, environment) {
 		}
 	}
 	
-	switch(func) {
-		// Arithmetic
-		case '+':
-		case '-':
-		case '*':
-		case '/':
-			return eval(args.join(func));
-			
-		// Comparisons
-		case '=':
-			return (args[0] == args[1]);
-		case '>':
-		case '<':
-		case '>=':
-		case '<=':
-		case '==':
-		case '!=':
-			return eval(args[0] + func + args[1]);
-			
-		// Logical
-		case 'not':
-			return !(args[0]);
-		case 'and':
-			return eval(args.join('&&'));
-		case 'or':
-			return eval(args.join('||'));
-			
-		// Conditionals
-		case 'if':
-			if (evaluate(args[0], environment)) {
-				return evaluate(args[1], environment);
-			} else {
-				return evaluate(args[2], environment);
-			}
-		case 'cond':
-			for (var i = 0; i < args.length; i++) {
-				var condBlock = args[i];
-				if (evaluate(condBlock[0], environment)) {
-					return evaluate(condBlock[1], environment);
-				}
-			}
+	if (func.lambda) {
+		// Lambda function
 		
-		// List operations
-		case 'cons':
-			return new Array(args[0], args[1]);
-		case 'car':
-			var arg = args[0];
-			return arg[0];
-		case 'cdr':
-			var arg = args[0];
-			return arg.slice(1);
-		case 'list':
-			return args;
-		
-		// lambdas and stuff
-		case 'define':
-			environment[args[0]] = args[1];
-		
-		// Misc
-		case 'quote':
-			return args[0];
-		case 'begin':
-			for (var i = 0; i < args.length - 1; i++) {
-				evaluate(args[i], environment);
-			}
-			return evaluate(args[args.length - 1], environment);
-		
-		default:
-			console.log('Unrecognized method: ' + func);
+		environment = func.environment;
+		if (func.arguments.length > args.length) {
+			console.log('Error: Not enough arguments passed to lambda: expected ' + func.arguments + ' but received ' + args);
 			return 'Error';
-			break;
+		}
+		for (var i = 0; i < func.arguments.length; i++) {
+			environment[func.arguments[i]] = args[i];
+		}
+		return evaluate(func.body, environment);
+	} else if (typeof func == 'string') {
+		// Built-in function
+		
+		switch(func) {
+			// Arithmetic
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+				return eval(args.join(func));
+				
+			// Comparisons
+			case '=':
+				return (args[0] == args[1]);
+			case '>':
+			case '<':
+			case '>=':
+			case '<=':
+			case '==':
+			case '!=':
+				return eval(args[0] + func + args[1]);
+				
+			// Logical
+			case 'not':
+				return !(args[0]);
+			case 'and':
+				return eval(args.join('&&'));
+			case 'or':
+				return eval(args.join('||'));
+				
+			// Conditionals
+			case 'if':
+				if (evaluate(args[0], environment)) {
+					return evaluate(args[1], environment);
+				} else {
+					return evaluate(args[2], environment);
+				}
+			case 'cond':
+				for (var i = 0; i < args.length; i++) {
+					var condBlock = args[i];
+					if (evaluate(condBlock[0], environment)) {
+						return evaluate(condBlock[1], environment);
+					}
+				}
+			
+			// List operations
+			case 'cons':
+				return new Array(args[0], args[1]);
+			case 'car':
+				var arg = args[0];
+				return arg[0];
+			case 'cdr':
+				var arg = args[0];
+				return arg.slice(1);
+			case 'list':
+				return args;
+			
+			// Lambdas and scoping stuff
+			case 'define':
+				environment[args[0]] = args[1];
+				break;
+			case 'lambda':
+				return {
+					'lambda': true,
+					'arguments': args[0],
+					'body': args[1],
+					'environment': environment
+				}
+			
+			// Misc
+			case 'quote':
+				return args[0];
+			case 'begin':
+				for (var i = 0; i < args.length - 1; i++) {
+					evaluate(args[i], environment);
+				}
+				return evaluate(args[args.length - 1], environment);
+			
+			default:
+				console.log('Unrecognized method: ' + func);
+				return 'Error';
+				break;
+		}
+	} else {
+		// Evaluate this function
+		sexp[0] = evaluate(func, environment);
+		return evaluate(sexp, environment);
 	}
 }
 
