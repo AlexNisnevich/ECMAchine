@@ -13,7 +13,8 @@
 .terminal {
     padding: 10px;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .terminal .prompt {
 	color: #080 !important;
