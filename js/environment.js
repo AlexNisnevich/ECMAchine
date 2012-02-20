@@ -57,6 +57,11 @@ var globalEnvironment = {
 					      "\n		(define nil ())" +
 						  "\n		(define null? (lambda (lst) (= (length lst) 0))))"
 			},
+			'math.lsp': {
+				'type': 'file',
+				'contents': "(begin" +
+					      "\n		(define abs (lambda x (cond ((> x 0) x) (#t (- x)))))"
+			},
 			'justforfun.lsp': {
 				'type': 'file',
 				'contents': "(define smile (lambda () ':-}))"

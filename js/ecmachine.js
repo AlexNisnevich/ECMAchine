@@ -87,6 +87,8 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 	];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'λ', 'map', 'filter'];
 	
+	console.log(sexp);
+	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
 			return true;
@@ -130,6 +132,9 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
+			if (typeof args[i] == 'object') {
+				args[i] = evaluate(args[i], environment, term);
+			}
 			lambdaEnvironment[func.arguments[i]] = args[i];
 		}
 		return evaluate(func.body, lambdaEnvironment);
@@ -138,9 +143,6 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 		switch(func) {
 			// Arithmetic
 			case '+':
-			case '-':
-			case '*':
-			case '/':
 				args = args.map(function (arg) {
 					if (typeof arg == 'string') { // this lets us overload + for string concatenation
 						return '"' + arg + '"';
@@ -149,6 +151,20 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 					}
 				})
 				return eval(args.join(func));
+			case '*':
+				return eval(args.join(func));
+			case '-':
+				if (args.length == 1) {
+					return (- args[0]);
+				} else {
+					return (args[0] - args[1]);
+				}
+			case '/':
+				if (args.length == 1) {
+					return (1 / args[0]);
+				} else {
+					return (args[0] / args[1]);
+				}
 				
 			// Comparisons
 			case '=':
