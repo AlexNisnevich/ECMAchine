@@ -41,7 +41,7 @@ function parse(sexp) {
     
     // do ( and ) match?
 	if (sexp.split('(').length != sexp.split(')').length) { 
-		throw 'Error: Parentheses do not match'; 
+		throw 'Parse Error: Parentheses do not match'; 
 	}
     
     // trim whitespace
@@ -105,7 +105,7 @@ function evaluate(sexp, environment, term) {
 			if (evaluatedArg !== undefined) {
 				args.push(evaluatedArg);
 			} else {
-				throw 'Error: Cannot evaluate token "' + sexp[i] + '"';
+				throw 'Parse Error: Cannot evaluate token "' + sexp[i] + '"';
 			}
 		}
 	}
@@ -224,27 +224,14 @@ function evaluate(sexp, environment, term) {
 				var fn = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
 				return lst.map(function (elt) {
-					if (typeof elt == 'string' && elt[0] != "'") {
-						elt = "'" + elt; // make sure string literals are quoted
-					}
-					try {
-						return evaluate(new Array(fn, elt), environment, term);
-					} catch (err) {
-						return "'" + new Array(err);
-					}
+					console.log(new Array(fn, elt));
+					return evaluate(new Array(fn, elt), environment, term);
 				});
 			case 'filter':
 				var cond = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
 				return lst.filter(function (elt) {
-					if (typeof elt == 'string' && elt[0] != "'") {
-						elt = "'" + elt; // make sure string literals are quoted
-					}
-					try {
-						return evaluate(new Array(cond, elt), environment, term);
-					} catch (err) {
-						false;
-					}
+					return evaluate(new Array(cond, elt), environment, term);
 				});
 			
 			// Filesystem
@@ -369,7 +356,7 @@ function evaluate(sexp, environment, term) {
 					'process': interval,
 					'code': contents,
 					'terminated': false
-				});
+				}) - 1;
 				
 				// and run it once right now
 				term.echo('Starting process at ' + args[0] + ' with PID ' + pid);
@@ -385,7 +372,7 @@ function evaluate(sexp, environment, term) {
 				}
 				clearInterval(processes[args[0]].process);
 				processes[args[0]].terminated = true;
-				return new Array('Process with PID ' + args[0] + ' (' + processes[args[0]].name + ') terminated');
+				return 'Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated';
 			case 'overlay': // (overlay txt x y id)
 				var name = args[3], txt = args[0], x = args[1], y = args[2];
 				$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any
@@ -405,12 +392,17 @@ function evaluate(sexp, environment, term) {
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:
+				if (environment[func] === 'undefined') {
+					throw 'Eval Error: function ' + func + ' does not exist';
+				}
 				sexp[0] = evaluate(environment[func], environment, term);
 				return evaluate(sexp, environment, term);
 		}
-	} else {
+	} else if (typeof func == 'object') {
 		// Evaluate this function
 		sexp[0] = evaluate(func, environment, term);
 		return evaluate(sexp, environment, term);
+	} else {
+		throw 'Eval Error: ' + func + ' is not a function';
 	}
 }
