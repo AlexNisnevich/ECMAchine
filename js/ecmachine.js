@@ -261,33 +261,12 @@ function evaluate(sexp, environment, term) {
 				var path = Filesystem.saveFile(args[0], newContents);
 				return 'Updated file ' + path;
 			case 'mv':
-				var file = fs[dir][args[0]];
-				var pathSplit = args[1].split('/');
-				var newPath = calculatePath(dir, args[1]);
-				var newName = pathSplit[pathSplit.length - 1];
-				var newFolderPath = Filesystem.calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				if (file === undefined) {
-					throw 'Error: file/directory "' + args[0] + '" does not exist';
-				} else if (fs[newFolderPath] === undefined) {
-					throw 'Error: the path "' + newFolderPath + '" does not exist';
-				} else {
-					if (file.type == 'dir') {
-						var oldPath = Filesystem.calculatePath(dir, args[0]);
-						environment['__fileSystem'][newPath] = fs[oldPath];
-						delete environment['__fileSystem'][oldPath];
-					} else {
-						var contents = file.contents;
-						delete environment['__fileSystem'][dir][args[0]];
-						environment['__fileSystem'][newFolderPath][newName] = {
-							'type': 'file',
-							'contents': contents
-						}
-					}
-				}
+				var paths = Filesystem.copyItem(args[0], args[1]);
+				Filesystem.removeItem(args[0]);
 				return;
 			case 'cp':
 				var paths = Filesystem.copyItem(args[0], args[1]);
-				return paths;
+				return 'Copied ' + paths.oldPath + ' to ' + paths.newPath;
 			case 'rm':
 				var path = Filesystem.removeItem(args[0]);
 				return 'Removed ' + path;
@@ -312,8 +291,8 @@ function evaluate(sexp, environment, term) {
 						'\n\t (new [[i;;]path])             Creates a new file' +
 						'\n\t (save [[i;;]path text])       Saves text to a file, replacing current contents if the file already exists' +
 						'\n\t (append [[i;;]path text])     Appends text to an existing file' +
-						'\n\t (mv [[i;;]filename newpath])  Moves a file or directory to a new location' +
-						'\n\t (cp [[i;;]filename newpath])  Copies a file or directory to a new location' +
+						'\n\t (mv [[i;;]oldpath newpath])   Moves a file or directory to a new location' +
+						'\n\t (cp [[i;;]oldpath newpath])   Copies a file or directory to a new location' +
 						'\n\t (rm [[i;;]path])              Removes a file or directory' +
 						'\n\t (file? [[i;;]path])           Returns whether there is a file at the given path' +
 						'\n\t (dir? [[i;;]path])            Returns whether there is a directory at the given path' +

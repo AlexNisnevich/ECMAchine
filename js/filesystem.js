@@ -231,6 +231,11 @@ var Filesystem = {
 		this.checkFileExists(file, path);
 		this.checkPathExists(newFolderPath);
 		
+		// if copying to a dir, append current filename to path
+		if (this.getFile(newPath).type == 'dir') {
+			newPath = newPath + '/' + this.getNameFromPath(path);
+		}
+		
 		if (file.type == 'dir') {
 			this.setDir(this.getDir());
 		} else {
