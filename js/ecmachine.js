@@ -2,7 +2,9 @@
  * Modify toString behavior of lists to Lisp style
  */
 Array.prototype.toString = function() {
-	return '(' + this.join(' ') + ')';
+	var sexp = '(' + this.join(' ') + ')';
+	sexp = sexp.replace(/lambda/g, '&lambda;');
+	return sexp;
 };
 
 function clone(obj){
@@ -200,6 +202,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				environment[args[0]] = args[1];
 				break;
 			case 'lambda':
+			case '&lambda;':
 				var arguments = args[0];
 				var body = args[1];
 				
@@ -211,7 +214,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 					'body': body,
 					'environment': environment,
 					toString: function () {
-						return '(lambda ' + argsList + ' ' + body + ')';
+						return '(&lambda; ' + argsList + ' ' + body + ')';
 					}
 				};
 			
