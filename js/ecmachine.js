@@ -64,8 +64,6 @@ function parse(sexp) {
  * Evaluates a parsed S-expression, Lisp-style
  */
 function evaluate(sexp, environment, term) {
-	var fs = environment['__fileSystem'];
-	var dir = environment['__currentDir'];
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
 			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
@@ -238,104 +236,44 @@ function evaluate(sexp, environment, term) {
 			
 			// Filesystem
 			case 'ls':
-				var fileNames = [];
-				for (fname in fs[dir]) {
-					fileNames.push(fname);
-				}
-				return fileNames;
+				return Filesystem.listFiles(args[0]);
 			case 'cd':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var newPath = calculatePath(dir, args[0]);
-				if (fs[newPath] === undefined) {
-					throw 'Error: path "' + newPath + '" does not exist';
-				}
-				environment['__currentDir'] = newPath;
+				var newPath = Filesystem.navigate(args[0]);
 				term.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				var file = fs[folderPath][fileName];
-				if (file === undefined) {
-					throw 'Error: file "' + args[0] + '" does not exist';
-				} else if (file.type == 'dir') {
-					throw 'Error: "' + args[0] + '" is a directory';
-				}
-				var contents = file.contents;
-				return contents;
+				return Filesystem.readFile(args[0]);
 			case 'exec':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				var file = fs[folderPath][fileName];
-				if (file === undefined) {
-					throw 'Error: file "' + args[0] + '" does not exist';
-				} else if (file.type == 'dir') {
-					throw 'Error: "' + args[0] + '" is a directory';
-				}
-				var contents = parse(file.contents);
-				return evaluate(contents, globalEnvironment, term);
+				var contents = Filesystem.readFile(args[0]);
+				return evaluate(parse(contents), globalEnvironment, term);
 			case 'mkdir':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var newDir = fs[dir][args[0]];
-				var newDirPath = calculatePath(dir, args[0]);
-				if (newDir !== undefined) {
-					throw 'Error: "' + args[0] + '" already exists';
-				}
-				environment['__fileSystem'][dir][args[0]] = { 'type': 'dir' };
-				environment['__fileSystem'][newDirPath] = {};
-				return;
+				var path = Filesystem.makeDir(args[0]);
+				return 'Directory ' + path + ' created';
 			case 'new':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				var file = fs[folderPath][fileName];
-				if (newFile !== undefined) {
-					throw 'Error: "' + args[0] + '" already exists';
-				}
-				var newDirPath = calculatePath(dir, args[0]);
-				environment['__fileSystem'][folderPath][fileName] = { 'type': 'file', 'contents': '' };
-				return;
+				var path = Filesystem.newFile(args[0]);
+				return 'File ' + path + ' created';
 			case 'save':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				var file = fs[folderPath][fileName];
-				if (file !== undefined && file.type == 'dir') {
-					throw 'Error: "' + args[0] + '" is a directory';
-				}
-				environment['__fileSystem'][folderPath][fileName] = { 'type': 'file', 'contents': args[1] };
-				return;
+				var path = Filesystem.saveFile(args[0], args[1]);
+				return 'Saved file ' + path;
 			case 'append':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				var file = fs[folderPath][fileName];
-				if (file === undefined) {
-					throw 'Error: file "' + args[0] + '" does not exist';
-				}
-				environment['__fileSystem'][folderPath][fileName].contents += (file.contents != '' ? '\n' : '') + args[1];
-				return;
+				var contents = Filesystem.readFile(args[0]);
+				var newContents = contents ? (contents + '\n' + args[1]) : '';
+				var path = Filesystem.saveFile(args[0], newContents);
+				return 'Updated file ' + path;
 			case 'mv':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
 				var file = fs[dir][args[0]];
 				var pathSplit = args[1].split('/');
 				var newPath = calculatePath(dir, args[1]);
 				var newName = pathSplit[pathSplit.length - 1];
-				var newFolderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var newFolderPath = Filesystem.calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
 				if (file === undefined) {
 					throw 'Error: file/directory "' + args[0] + '" does not exist';
 				} else if (fs[newFolderPath] === undefined) {
 					throw 'Error: the path "' + newFolderPath + '" does not exist';
 				} else {
 					if (file.type == 'dir') {
-						var oldPath = calculatePath(dir, args[0]);
+						var oldPath = Filesystem.calculatePath(dir, args[0]);
 						environment['__fileSystem'][newPath] = fs[oldPath];
 						delete environment['__fileSystem'][oldPath];
 					} else {
@@ -354,14 +292,14 @@ function evaluate(sexp, environment, term) {
 				var pathSplit = args[1].split('/');
 				var newPath = calculatePath(dir, args[1]);
 				var newName = pathSplit[pathSplit.length - 1];
-				var newFolderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var newFolderPath = Filesystem.calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
 				if (file === undefined) {
 					throw 'Error: file/directory "' + args[0] + '" does not exist';
 				} else if (fs[newFolderPath] === undefined) {
 					throw 'Error: the path "' + newFolderPath + '" does not exist';
 				} else {
 					if (file.type == 'dir') {
-						var oldPath = calculatePath(dir, args[0]);
+						var oldPath = Filesystem.calculatePath(dir, args[0]);
 						environment['__fileSystem'][newPath] = fs[oldPath];
 					} else {
 						var contents = file.contents;
@@ -379,20 +317,18 @@ function evaluate(sexp, environment, term) {
 					throw 'Error: file/directory "' + args[0] + '" does not exist';
 				} else {
 					if (file.type == 'dir') {
-						var dirPath = calculatePath(dir, args[0]);
+						var dirPath = Filesystem.calculatePath(dir, args[0]);
 						delete environment['__fileSystem'][dirPath];
 					}
 					delete environment['__fileSystem'][dir][args[0]];
 				}
 				return;
 			case 'file?':
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				return (fs[folderPath][fileName] !== undefined && fs[folderPath][fileName].type == 'file');
+				var file = Filesystem.getFileFromPath(args[0]);
+				return (file !== undefined && file.type == 'file');
 			case 'dir?':
-				var folderPath = calculatePath(dir, args[0]);
-				return (fs[folderPath] !== undefined);
+				var folderPath = Filesystem.calculatePath(args[0]);
+				return (Filesystem.getDir(folderPath) !== undefined);
 			
 			// Misc ECMAchine commands
 			case 'help':
@@ -456,22 +392,11 @@ function evaluate(sexp, environment, term) {
 				return procs;
 			case 'start':
 				// get program
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var pathSplit = args[0].split('/');
-				var fileName = pathSplit[pathSplit.length - 1];
-				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				console.log(folderPath);
-				var file = fs[folderPath][fileName];
-				if (file === undefined) {
-					throw 'Error: file "' + args[0] + '" does not exist';
-				} else if (file.type == 'dir') {
-					throw 'Error: "' + args[0] + '" is a directory';
-				}
-				var contents = parse(file.contents);
+				var contents = Filesystem.readFile(args[0]);
 				
 				// start interval
 				var interval = setInterval(function (term) {
-					var result = evaluate(contents, globalEnvironment, term);
+					var result = evaluate(parse(contents), globalEnvironment, term);
 					if (result !== undefined) {
 						term.echo(result);
 						$(document).scrollTop($(document).height());
@@ -482,11 +407,12 @@ function evaluate(sexp, environment, term) {
 				processes.push({
 					'name': args[0],
 					'process': interval,
-					'code': file.contents,
+					'code': contents,
 					'terminated': false
 				});
 				
-				return;
+				// and run it once right now
+				return evaluate(parse(contents), globalEnvironment, term);
 			case 'peek':
 				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 					throw 'There is no process with PID ' + args[0];
@@ -525,27 +451,5 @@ function evaluate(sexp, environment, term) {
 		// Evaluate this function
 		sexp[0] = evaluate(func, environment, term);
 		return evaluate(sexp, environment, term);
-	}
-}
-
-/*
- * Gets new path (e.g. for 'cd' command)
- */
-function calculatePath(currentPath, dir) {
-	if (dir == '/') {
-		return '/';
-	} else {
-		var pathComponents = currentPath.split('/');
-		var dirComponents = dir.split('/');
-		dirComponents.forEach(function (comp) {
-			if (comp == '..') {
-				pathComponents.pop();
-			} else {
-				pathComponents.push(comp);
-			}
-		});
-		console.log(pathComponents);
-		var newPath = pathComponents.join('/').replace(/\/+/g,'/');
-		return (newPath != '') ? newPath : '/';
 	}
 }

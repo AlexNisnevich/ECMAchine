@@ -18,6 +18,9 @@ var globalEnvironment = {
 			'apps': {
 				'type': 'dir'
 			},
+			'startup': {
+				'type': 'dir'
+			},
 			'usr': {
 				'type': 'dir'
 			}
