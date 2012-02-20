@@ -39,14 +39,17 @@ function parse(sexp) {
     	return tokens;
     };
     
-    sexp = sexp.replace(/\s+/g, " "); // first, trim whitespace!
-	
-	// do ( and ) match?
+    // do ( and ) match?
 	if (sexp.split('(').length != sexp.split(')').length) { 
 		throw 'Error: Parentheses do not match'; 
-	} 	
+	}
+    
+    // trim whitespace
+    sexp = sexp.replace(/\s+/g, " ");	
 	
-	if (sexp[0] == '(') {
+	if (sexp == '()') {
+		return [];
+	} else if (sexp[0] == '(') {
 		var parsed_sexp = [];
 		var tokens = tokenize(sexp);
 		for (var i = 0; i < tokens.length; i++) {
@@ -188,10 +191,8 @@ function evaluate(sexp, environment, term) {
 				environment[args[0]] = args[1];
 				break;
 			case 'lambda':
+				console.log(sexp);
 				var arguments = args[0];
-				if (arguments.length = 1 && arguments[0] == '') {
-					arguments = [];
-				}
 				var body = args[1];
 				
 				console.log({

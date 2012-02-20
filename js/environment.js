@@ -47,10 +47,6 @@ var globalEnvironment = {
 			}
 		},
 		'/startup': {
-			'clock.lnk': {
-				'type': 'file',
-				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
-			},
 			'justforfun.lsp': {
 				'type': 'file',
 				'contents': "(define smile (lambda () ':-}))"
