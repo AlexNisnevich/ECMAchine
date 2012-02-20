@@ -47,10 +47,10 @@ var globalEnvironment = {
 			}
 		},
 		'/startup': {
-			'clock.lnk': {
+			/*'clock.lnk': {
 				'type': 'file',
 				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
-			},
+			},*/
 			'utility.lsp': {
 				'type': 'file',
 				'contents': "(begin" +

@@ -85,7 +85,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'do-nothing',
 		'processes', 'start', 'peek', 'kill', 'overlay'
 	];
-	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'filter'];
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'λ', 'map', 'filter'];
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -95,7 +95,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 		} else if (typeof sexp == 'number') { // number
 			return sexp;
 		} else if (sexp[0] == "'") { // string literal
-			return sexp.slice(1);
+			return parse(sexp.slice(1));
 		} else if (builtInFunctions.indexOf(sexp) > -1) { // built-in function
 			return sexp;
 		} else { // variable
@@ -135,7 +135,6 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 		return evaluate(func.body, lambdaEnvironment);
 	} else if (typeof func == 'string') {
 		// Built-in function
-		
 		switch(func) {
 			// Arithmetic
 			case '+':
@@ -202,7 +201,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				environment[args[0]] = args[1];
 				break;
 			case 'lambda':
-			case '&lambda;':
+			case 'λ':
 				var arguments = args[0];
 				var body = args[1];
 				
@@ -401,8 +400,8 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:
-				if (environment[func] === 'undefined') {
-					throw 'Eval Error: function ' + func + ' does not exist';
+				if (environment[func] === undefined) {
+					throw 'Eval Error: function "' + func + '" does not exist';
 				}
 				sexp[0] = evaluate(environment[func], environment, term);
 				return evaluate(sexp, environment, term);
