@@ -248,4 +248,14 @@ var Filesystem = {
 			'newPath': newPath
 		};
 	}
+};
+
+function startFileSystem(term) {
+	term.echo('Launching filesystem ...');
+	
+	// Run all files in /startup
+	for (var fname in Filesystem.getDir('/startup')) {
+		var contents = Filesystem.getFile('/startup/' + fname).contents;
+		evaluate(parse(contents), globalEnvironment, term);
+	}
 }

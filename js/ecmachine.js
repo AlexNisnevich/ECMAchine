@@ -112,7 +112,7 @@ function evaluate(sexp, environment, term) {
 		
 		lambdaEnvironment = func.environment;
 		if (func.arguments.length > args.length) {
-			throw 'Error: Not enough arguments passed to lambda: expected ' + func.arguments + ' but received ' + args;
+			throw 'Error: Not enough arguments passed to lambda: expected ' + func.arguments.length + ' but received ' + args.length;
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
@@ -188,10 +188,22 @@ function evaluate(sexp, environment, term) {
 				environment[args[0]] = args[1];
 				break;
 			case 'lambda':
+				var arguments = args[0];
+				if (arguments.length = 1 && arguments[0] == '') {
+					arguments = [];
+				}
+				var body = args[1];
+				
+				console.log({
+					'lambda': true,
+					'arguments': arguments,
+					'body': body,
+					'environment': environment
+				});
 				return {
 					'lambda': true,
-					'arguments': args[0],
-					'body': args[1],
+					'arguments': arguments,
+					'body': body,
 					'environment': environment
 				}
 			
@@ -351,7 +363,7 @@ function evaluate(sexp, environment, term) {
 				}, evaluate(args[1], environment, term), term);
 				
 				// add to process list
-				processes.push({
+				var pid = processes.push({
 					'name': args[0],
 					'process': interval,
 					'code': contents,
@@ -359,6 +371,7 @@ function evaluate(sexp, environment, term) {
 				});
 				
 				// and run it once right now
+				term.echo('Starting process at ' + args[0] + ' with PID ' + pid);
 				return evaluate(parse(contents), globalEnvironment, term);
 			case 'peek':
 				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
