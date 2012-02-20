@@ -54,13 +54,19 @@ var globalEnvironment = {
 			'utility.lsp': {
 				'type': 'file',
 				'contents': "(begin" +
-					      "\n		(define nil ())" +
-						  "\n		(define null? (lambda (lst) (= (length lst) 0))))"
+					      "\n       (define nil ())" +
+						  "\n	    (define null? (lambda (lst) (= (length lst) 0))))"
 			},
 			'math.lsp': {
 				'type': 'file',
 				'contents': "(begin" +
-					      "\n		(define abs (lambda x (cond ((> x 0) x) (#t (- x)))))"
+					      "\n       (define abs (lambda (x)" +
+					      "\n             (cond ((> x 0) x)" +
+				      	  "\n                   (#t (- x)))))" +
+					      "\n       (define fact (lambda (x)" +
+					      "\n             (if (= x 1)" +
+					      "\n                 1" +
+					      "\n                 (* x (fact (- x 1)))))))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',

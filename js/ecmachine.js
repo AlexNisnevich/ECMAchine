@@ -87,7 +87,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 	];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'λ', 'map', 'filter'];
 	
-	console.log(sexp);
+	console.log(sexp); // for debugging
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -132,7 +132,8 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
-			if (typeof args[i] == 'object') {
+			// if method call or quoted string, evaluate
+			if (typeof args[i] == 'object' || (args[i][0] && args[i][0] == "'")) {
 				args[i] = evaluate(args[i], environment, term);
 			}
 			lambdaEnvironment[func.arguments[i]] = args[i];
@@ -419,8 +420,9 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				if (environment[func] === undefined) {
 					throw 'Eval Error: function "' + func + '" does not exist';
 				}
-				sexp[0] = evaluate(environment[func], environment, term);
-				return evaluate(sexp, environment, term);
+				var newSexp = clone(sexp);
+				newSexp[0] = evaluate(environment[func], environment, term);
+				return evaluate(newSexp, environment, term);
 		}
 	} else if (typeof func == 'object') {
 		// Evaluate this function
