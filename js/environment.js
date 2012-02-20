@@ -25,7 +25,7 @@ var globalEnvironment = {
 		'/apps': {
 			'clock.app': {
 				'type': 'file',
-				'contents': "(overlay (time) -30 -30 'clock)"
+				'contents': "(overlay (time (list 'h ': 'm ': 's)) -30 -30 'clock)"
 			},
 			'virushunter.app': {
 				'type': 'file',
