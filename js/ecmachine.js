@@ -66,7 +66,7 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp, environment, term) {
+function evaluate(sexp, environment, term, noArgEvaluation) {
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
 			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
@@ -94,7 +94,7 @@ function evaluate(sexp, environment, term) {
 	
 	var func = sexp[0];
 	
-	if (func.lambda || controlFlowStatements.indexOf(func) > -1) {
+	if (func.lambda || controlFlowStatements.indexOf(func) > -1 || noArgEvaluation) {
 		// lambda or control flow statement: don't evaluate arguments
 		var args = sexp.slice(1);
 	} else {
@@ -224,13 +224,13 @@ function evaluate(sexp, environment, term) {
 				var fn = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
 				return lst.map(function (elt) {
-					return evaluate(new Array(fn, elt), environment, term);
+					return evaluate(new Array(fn, elt), environment, term, true);
 				});
 			case 'filter':
 				var cond = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
 				return lst.filter(function (elt) {
-					return evaluate(new Array(cond, elt), environment, term);
+					return evaluate(new Array(cond, elt), environment, term, true);
 				});
 			
 			// Filesystem

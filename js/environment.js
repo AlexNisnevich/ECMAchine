@@ -47,13 +47,15 @@ var globalEnvironment = {
 			}
 		},
 		'/startup': {
-			/* 'clock.lnk': {
+			'clock.lnk': {
 				'type': 'file',
 				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
-			}, */
+			},
 			'utility.lsp': {
 				'type': 'file',
-				'contents': "(define null? (lambda (lst) (= (length lst) 0)))"
+				'contents': "(begin" +
+					      "\n		(define nil ())" +
+						  "\n		(define null? (lambda (lst) (= (length lst) 0))))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',
