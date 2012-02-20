@@ -10,7 +10,9 @@ var Filesystem = {
 	 * Gets new path (e.g. for 'cd' command)
 	 */
 	calculatePath: function(dir) {
-		if (dir == '/') {
+		if (dir == '') {
+			return this.currentDir;
+		} if (dir == '/') {
 			return '/';
 		} else {
 			if (dir == "'") { dir = dir.slice(1); } // remove initial quote if exists 
@@ -28,14 +30,21 @@ var Filesystem = {
 		}
 	},
 	
+	getNameFromPath: function(path) {
+		var pathSplit = path.split('/');
+		return pathSplit[pathSplit.length - 1];
+	},
+	
+	getFolderFromPath: function(path) {
+		var pathSplit = path.split('/');
+		return this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
+	},
+	
 	/*
 	 * Gets a file from a path
 	 */
 	getFileFromPath: function(path) {
-		var pathSplit = path.split('/');
-		var fileName = pathSplit[pathSplit.length - 1];
-		var folderPath = this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
-		return this.fs[folderPath][fileName];
+		return this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)];
 	},
 	
 	/*
@@ -49,10 +58,7 @@ var Filesystem = {
 	 * Creates/updates file at given path
 	 */
 	setFileAtPath: function(path, file) {
-		var pathSplit = path.split('/');
-		var fileName = pathSplit[pathSplit.length - 1];
-		var folderPath = this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
-		this.fs[folderPath][fileName] = file;
+		this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)] = file;
 	},
 	
 	/*
@@ -60,6 +66,20 @@ var Filesystem = {
 	 */
 	createEmptyDir: function(path) {
 		this.fs[path] = {};
+	},
+	
+	/*
+	 * Deletes file at path
+	 */
+	deleteFileAtPath: function(path) {
+		delete this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)];
+	},
+	
+	/*
+	 * Deletes directory
+	 */
+	deleteDir: function(path) {
+		delete this.fs[path];
 	},
 	
 	//
@@ -112,6 +132,7 @@ var Filesystem = {
 	 */
 	listFiles: function(dir) {
 		var workingDir = dir ? this.calculatePath(dir) : this.currentDir;
+		this.checkPathExists(workingDir);
 		
 		var fileNames = [];
 		for (var fname in this.getDir(workingDir)) {
@@ -150,7 +171,7 @@ var Filesystem = {
 		var newDirPath = this.calculatePath(name);
 		this.checkAlreadyExists(this.getDir(name), newDirPath);
 		this.createEmptyDir(newDirPath);
-		this.setFile(newDirPath, { 'type': 'dir' });
+		this.setFileAtPath(name, { 'type': 'dir' });
 		return newDirPath;
 	},
 	
@@ -173,6 +194,21 @@ var Filesystem = {
 		var file = this.getFileFromPath(path);
 		this.checkNotADir(file);
 		this.setFileAtPath(path, { 'type': 'file', 'contents': contents });
+		return this.calculatePath(path);
+	},
+	
+	/*
+	 * Removes a file or directory
+	 * Returns its path
+	 */
+	removeFile: function(path) {
+		var file = this.getFileFromPath(path);
+		this.checkFileExists(file, path);
+		if (file.type == 'dir') {
+			var dirPath = this.calculatePath(path);
+			this.deleteDir(dirPath);
+		}
+		this.deleteFileAtPath(path);
 		return this.calculatePath(path);
 	}
 }

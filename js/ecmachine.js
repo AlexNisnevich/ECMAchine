@@ -261,7 +261,6 @@ function evaluate(sexp, environment, term) {
 				var path = Filesystem.saveFile(args[0], newContents);
 				return 'Updated file ' + path;
 			case 'mv':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
 				var file = fs[dir][args[0]];
 				var pathSplit = args[1].split('/');
 				var newPath = calculatePath(dir, args[1]);
@@ -287,7 +286,6 @@ function evaluate(sexp, environment, term) {
 				}
 				return;
 			case 'cp':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
 				var file = fs[dir][args[0]];
 				var pathSplit = args[1].split('/');
 				var newPath = calculatePath(dir, args[1]);
@@ -311,18 +309,8 @@ function evaluate(sexp, environment, term) {
 				}
 				return;
 			case 'rm':
-				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
-				var file = fs[dir][args[0]];
-				if (file === undefined) {
-					throw 'Error: file/directory "' + args[0] + '" does not exist';
-				} else {
-					if (file.type == 'dir') {
-						var dirPath = Filesystem.calculatePath(dir, args[0]);
-						delete environment['__fileSystem'][dirPath];
-					}
-					delete environment['__fileSystem'][dir][args[0]];
-				}
-				return;
+				var path = Filesystem.removeFile(args[0]);
+				return 'Removed ' + path;
 			case 'file?':
 				var file = Filesystem.getFileFromPath(args[0]);
 				return (file !== undefined && file.type == 'file');
@@ -346,7 +334,7 @@ function evaluate(sexp, environment, term) {
 						'\n\t (append [[i;;]path text])     Appends text to an existing file' +
 						'\n\t (mv [[i;;]filename newpath])  Moves a file or directory to a new location' +
 						'\n\t (cp [[i;;]filename newpath])  Copies a file or directory to a new location' +
-						'\n\t (rm [[i;;]filename])          Removes a file or directory' +
+						'\n\t (rm [[i;;]path])              Removes a file or directory' +
 						'\n\t (file? [[i;;]path])           Returns whether there is a file at the given path' +
 						'\n\t (dir? [[i;;]path])            Returns whether there is a directory at the given path' +
 						'\n\t (time [[[i;;]format]])        Displays the current time' + 
