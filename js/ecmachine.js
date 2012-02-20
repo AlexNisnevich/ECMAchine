@@ -224,7 +224,6 @@ function evaluate(sexp, environment, term) {
 				var fn = evaluate(args[0], environment, term);
 				var lst = evaluate(args[1], environment, term);
 				return lst.map(function (elt) {
-					console.log(new Array(fn, elt));
 					return evaluate(new Array(fn, elt), environment, term);
 				});
 			case 'filter':
@@ -271,7 +270,7 @@ function evaluate(sexp, environment, term) {
 				var path = Filesystem.removeItem(args[0]);
 				return 'Removed ' + path;
 			case 'file?':
-				var file = Filesystem.getFileFromPath(args[0]);
+				var file = Filesystem.getFile(args[0]);
 				return (file !== undefined && file.type == 'file');
 			case 'dir?':
 				var folderPath = Filesystem.calculatePath(args[0]);

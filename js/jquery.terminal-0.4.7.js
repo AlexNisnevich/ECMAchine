@@ -1089,6 +1089,7 @@ function get_stack(caller) {
                         prompt_node.html(encodeHTML(string) + '&nbsp;');
                     });
                 }
+                $(document).scrollTop($(document).height()); // AN
                 //change_num_chars();
             };
         })();

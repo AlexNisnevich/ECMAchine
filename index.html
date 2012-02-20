@@ -14,8 +14,8 @@
     jQuery(document).ready(function($) {
 	    $(document.documentElement).terminal(function(command, term) {
 	        if (command !== '') {
-	        	var result = evaluate(parse(command), globalEnvironment, term);
-	            if (result !== undefined) {
+        		var result = evaluate(parse(command), globalEnvironment, term);
+        		if (result !== undefined) {
 	                term.echo(String(result));
 	            }
 	        } else {
