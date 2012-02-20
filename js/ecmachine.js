@@ -5,6 +5,15 @@ Array.prototype.toString = function() {
 	return '(' + this.join(' ') + ')';
 };
 
+function clone(obj){
+    if(obj == null || typeof(obj) != 'object')
+        return obj;
+    var temp = new obj.constructor(); 
+    for(var key in obj)
+        temp[key] = clone(obj[key]);
+    return temp;
+}
+
 /*
  * Parses S-expression into a nested list
  */
@@ -113,13 +122,13 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 	if (func.lambda) {
 		// Lambda function
 		
-		lambdaEnvironment = func.environment;
+		var lambdaEnvironment = clone(func.environment);
 		if (func.arguments.length > args.length) {
 			throw 'Error: Not enough arguments passed to lambda: expected ' + func.arguments.length + ' but received ' + args.length;
 			return 'Error';
 		}
 		for (var i = 0; i < func.arguments.length; i++) {
-			lambdaEnvironment[func.arguments[i]] = evaluate(args[i], environment, term);
+			lambdaEnvironment[func.arguments[i]] = args[i];
 		}
 		return evaluate(func.body, lambdaEnvironment);
 	} else if (typeof func == 'string') {
@@ -191,22 +200,20 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				environment[args[0]] = args[1];
 				break;
 			case 'lambda':
-				console.log(sexp);
 				var arguments = args[0];
 				var body = args[1];
 				
-				console.log({
-					'lambda': true,
-					'arguments': arguments,
-					'body': body,
-					'environment': environment
-				});
+				var argsList = []; for (var i = 0; i < arguments.length; i++) { argsList.push(arguments[i]); } // a necessary evil
+				
 				return {
 					'lambda': true,
 					'arguments': arguments,
 					'body': body,
-					'environment': environment
-				}
+					'environment': environment,
+					toString: function () {
+						return '(lambda ' + argsList + ' ' + body + ')';
+					}
+				};
 			
 			// Misc Lisp
 			case 'quote':
@@ -221,7 +228,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 			
 			// Higher-order functions
 			case 'map':
-				var fn = evaluate(args[0], environment, term);
+				var fn = args[0];
 				var lst = evaluate(args[1], environment, term);
 				return lst.map(function (elt) {
 					return evaluate(new Array(fn, elt), environment, term, true);
@@ -247,28 +254,28 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				return evaluate(parse(contents), globalEnvironment, term);
 			case 'mkdir':
 				var path = Filesystem.makeDir(args[0]);
-				return 'Directory ' + path + ' created';
+				return new Array('Directory ' + path + ' created');
 			case 'new':
 				var path = Filesystem.newFile(args[0]);
-				return 'File ' + path + ' created';
+				return new Array('File ' + path + ' created');
 			case 'save':
 				var path = Filesystem.saveFile(args[0], args[1]);
-				return 'Saved file ' + path;
+				return new Array('Saved file ' + path);
 			case 'append':
 				var contents = Filesystem.readFile(args[0]);
 				var newContents = contents ? (contents + '\n' + args[1]) : '';
 				var path = Filesystem.saveFile(args[0], newContents);
-				return 'Updated file ' + path;
+				return new Array('Updated file ' + path);
 			case 'mv':
 				var paths = Filesystem.copyItem(args[0], args[1]);
 				Filesystem.removeItem(args[0]);
-				return;
+				return new Array('Moved ' + paths.oldPath + ' to ' + paths.newPath);
 			case 'cp':
 				var paths = Filesystem.copyItem(args[0], args[1]);
-				return 'Copied ' + paths.oldPath + ' to ' + paths.newPath;
+				return new Array('Copied ' + paths.oldPath + ' to ' + paths.newPath);
 			case 'rm':
 				var path = Filesystem.removeItem(args[0]);
-				return 'Removed ' + path;
+				return new Array('Removed ' + path);
 			case 'file?':
 				var file = Filesystem.getFile(args[0]);
 				return (file !== undefined && file.type == 'file');
@@ -358,7 +365,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				}) - 1;
 				
 				// and run it once right now
-				term.echo('Starting process at ' + args[0] + ' with PID ' + pid);
+				term.echo(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
 				return evaluate(parse(contents), globalEnvironment, term);
 			case 'peek':
 				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
@@ -371,7 +378,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				}
 				clearInterval(processes[args[0]].process);
 				processes[args[0]].terminated = true;
-				return 'Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated';
+				return new Array('Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated');
 			case 'overlay': // (overlay txt x y id)
 				var name = args[3], txt = args[0], x = args[1], y = args[2];
 				$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any

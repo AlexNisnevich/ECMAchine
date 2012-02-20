@@ -42,15 +42,12 @@ var globalEnvironment = {
 				'type': 'file',
 				'contents': "(begin" +
 						  "\n     (cd '/)" +
-						  "\n     (map rm (ls)))"
-					   // "\n     (map kill (processes)))" // doesn't work atm
+						  "\n     (map rm (ls)))" +
+					      "\n     (map kill (map car (processes))))"
 			}
 		},
 		'/startup': {
-			'clock.lnk': {
-				'type': 'file',
-				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
-			},
+			
 			'utility.lsp': {
 				'type': 'file',
 				'contents': "(begin" +
