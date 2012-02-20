@@ -236,11 +236,10 @@ var Filesystem = {
 			newPath = newPath + '/' + this.getNameFromPath(path);
 		}
 		
+		var contents = file.contents;
+		this.setFile(newPath, { 'type': 'file', 'contents': contents });
 		if (file.type == 'dir') {
-			this.setDir(this.getDir());
-		} else {
-			var contents = file.contents;
-			this.setFile(newPath, { 'type': 'file', 'contents': contents });
+			this.setDir(newPath, this.getDir(oldPath));
 		}
 		
 		return {
