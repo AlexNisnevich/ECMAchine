@@ -286,30 +286,10 @@ function evaluate(sexp, environment, term) {
 				}
 				return;
 			case 'cp':
-				var file = fs[dir][args[0]];
-				var pathSplit = args[1].split('/');
-				var newPath = calculatePath(dir, args[1]);
-				var newName = pathSplit[pathSplit.length - 1];
-				var newFolderPath = Filesystem.calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
-				if (file === undefined) {
-					throw 'Error: file/directory "' + args[0] + '" does not exist';
-				} else if (fs[newFolderPath] === undefined) {
-					throw 'Error: the path "' + newFolderPath + '" does not exist';
-				} else {
-					if (file.type == 'dir') {
-						var oldPath = Filesystem.calculatePath(dir, args[0]);
-						environment['__fileSystem'][newPath] = fs[oldPath];
-					} else {
-						var contents = file.contents;
-						environment['__fileSystem'][newFolderPath][newName] = {
-							'type': 'file',
-							'contents': contents
-						}
-					}
-				}
-				return;
+				var paths = Filesystem.copyItem(args[0], args[1]);
+				return paths;
 			case 'rm':
-				var path = Filesystem.removeFile(args[0]);
+				var path = Filesystem.removeItem(args[0]);
 				return 'Removed ' + path;
 			case 'file?':
 				var file = Filesystem.getFileFromPath(args[0]);
@@ -346,7 +326,7 @@ function evaluate(sexp, environment, term) {
 						'\n\t (peek [[i;;]pid])             Shows the code for the process with the specified PID' +
 						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
 						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
-						;
+					;
 			case 'path':
 				return args.join('/').replace('//','/');
 			case 'time':
