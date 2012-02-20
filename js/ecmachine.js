@@ -73,7 +73,7 @@ function evaluate(sexp, environment, term) {
 			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'do-nothing',
 		'processes', 'start', 'peek', 'kill', 'overlay'
 	];
-	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'filter', 'start'];
+	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'map', 'filter'];
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -254,7 +254,10 @@ function evaluate(sexp, environment, term) {
 				return;
 			case 'read':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var file = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var file = fs[folderPath][fileName];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
 				} else if (file.type == 'dir') {
@@ -264,7 +267,10 @@ function evaluate(sexp, environment, term) {
 				return contents;
 			case 'exec':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var file = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var file = fs[folderPath][fileName];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
 				} else if (file.type == 'dir') {
@@ -284,28 +290,37 @@ function evaluate(sexp, environment, term) {
 				return;
 			case 'new':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var newFile = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var file = fs[folderPath][fileName];
 				if (newFile !== undefined) {
 					throw 'Error: "' + args[0] + '" already exists';
 				}
 				var newDirPath = calculatePath(dir, args[0]);
-				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': '' };
+				environment['__fileSystem'][folderPath][fileName] = { 'type': 'file', 'contents': '' };
 				return;
 			case 'save':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var file = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var file = fs[folderPath][fileName];
 				if (file !== undefined && file.type == 'dir') {
 					throw 'Error: "' + args[0] + '" is a directory';
 				}
-				environment['__fileSystem'][dir][args[0]] = { 'type': 'file', 'contents': args[1] };
+				environment['__fileSystem'][folderPath][fileName] = { 'type': 'file', 'contents': args[1] };
 				return;
 			case 'append':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var file = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				var file = fs[folderPath][fileName];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
 				}
-				environment['__fileSystem'][dir][args[0]].contents += (file.contents != '' ? '\n' : '') + args[1];
+				environment['__fileSystem'][folderPath][fileName].contents += (file.contents != '' ? '\n' : '') + args[1];
 				return;
 			case 'mv':
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists
@@ -387,29 +402,29 @@ function evaluate(sexp, environment, term) {
 						'\n\t (ls)                   Lists the contents of the current directory' +
 						'\n\t (cd [[i;;]path])              Navigates to another directory' +
 						'\n\t (path [[i;;]dir1 dir2 ...])   Constructs a path string [[i;;](e.g. dir1/dir2)] from a list of subdirectories' +
-						'\n\t (read [[i;;]filename])        Displays the contents of a file' +
-						'\n\t (exec [[i;;]filename])        Executes a LISP file' +
+						'\n\t (read [[i;;]filepath])        Displays the contents of a file' +
+						'\n\t (exec [[i;;]filepath])        Executes a LISP file' +
 						'\n\t (mkdir [[i;;]name])           Creates a new directory' +
-						'\n\t (new [[i;;]name])             Creates a new file' +
-						'\n\t (save [[i;;]name text])       Saves text to a file, replacing current contents if the file already exists' +
-						'\n\t (append [[i;;]name text])     Appends text to an existing file' +
+						'\n\t (new [[i;;]path])             Creates a new file' +
+						'\n\t (save [[i;;]path text])       Saves text to a file, replacing current contents if the file already exists' +
+						'\n\t (append [[i;;]path text])     Appends text to an existing file' +
 						'\n\t (mv [[i;;]filename newpath])  Moves a file or directory to a new location' +
 						'\n\t (cp [[i;;]filename newpath])  Copies a file or directory to a new location' +
 						'\n\t (rm [[i;;]filename])          Removes a file or directory' +
 						'\n\t (file? [[i;;]path])           Returns whether there is a file at the given path' +
 						'\n\t (dir? [[i;;]path])            Returns whether there is a directory at the given path' +
-						'\n\t (time)                 Displays the current time' + 
+						'\n\t (time [[[i;;]format]])        Displays the current time' + 
 						'\n\t (do-nothing)			 Dummy command' +
 						'\n\t (help)                 Displays this help screen' +
 					'\nThe following commands for dealing with processes are supported:' +
 						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
-						'\n\t (start [[i;;]name interval])  Starts a LISP program from a file, with the specified refresh rate (in ms)' +
+						'\n\t (start [[i;;]path interval])  Starts a LISP program from a file, with the specified refresh rate (in ms)' +
 						'\n\t (peek [[i;;]pid])             Shows the code for the process with the specified PID' +
 						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
 						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
 						;
 			case 'path':
-				return args.join('/');
+				return args.join('/').replace('//','/');
 			case 'time':
 				var date = new Date();
                 if (args[0] == null)
@@ -442,7 +457,11 @@ function evaluate(sexp, environment, term) {
 			case 'start':
 				// get program
 				if (args[0][0] == "'") { args[0] = args[0].slice(1); } // remove initial quote if exists 
-				var file = fs[dir][args[0]];
+				var pathSplit = args[0].split('/');
+				var fileName = pathSplit[pathSplit.length - 1];
+				var folderPath = calculatePath(dir, pathSplit.slice(0, pathSplit.length - 1).join('/'));
+				console.log(folderPath);
+				var file = fs[folderPath][fileName];
 				if (file === undefined) {
 					throw 'Error: file "' + args[0] + '" does not exist';
 				} else if (file.type == 'dir') {
@@ -525,7 +544,8 @@ function calculatePath(currentPath, dir) {
 				pathComponents.push(comp);
 			}
 		});
-		var newPath = pathComponents.join('/').replace('//','/');
+		console.log(pathComponents);
+		var newPath = pathComponents.join('/').replace(/\/+/g,'/');
 		return (newPath != '') ? newPath : '/';
 	}
 }

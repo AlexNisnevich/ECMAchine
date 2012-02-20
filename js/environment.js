@@ -43,6 +43,12 @@ var globalEnvironment = {
 					   // "\n     (map kill (processes)))" // doesn't work atm
 			}
 		},
+		'/startup': {
+			'clock.lnk': {
+				'type': 'file',
+				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
+			}
+		},
 		'/usr': {
 			
 		}
