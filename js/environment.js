@@ -66,9 +66,9 @@ var globalEnvironment = {
 					      "\n       (define fact (lambda (x)" +
 					      "\n             (if (= x 1)" +
 					      "\n                 1" +
-					      "\n                 (* x (fact (- x 1)))))))" +
+					      "\n                 (* x (fact (- x 1))))))" +
 					      "\n       (define math (lambda (func args)" +
-					      "\n             (js-apply (+ 'Math. func) args)))"
+					      "\n             (js-apply (+ 'Math. func) args))))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',
