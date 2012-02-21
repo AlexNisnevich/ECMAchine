@@ -31,7 +31,8 @@
 	        height: 200,
 	        prompt: 'ecmachine:/ guest$',
 	        onInit: function(term) {
-	        	startFileSystem(term);
+	        	terminal = term;
+	        	startFileSystem(terminal);
 	        }
 		});
 	    $('body').css('display', 'none');

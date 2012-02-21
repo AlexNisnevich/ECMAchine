@@ -54,8 +54,12 @@ function parse(sexp) {
 		throw 'Parse Error: Parentheses do not match'; 
 	}
     
-    // trim whitespace
-    sexp = sexp.replace(/\s+/g, " ");	
+    // trim
+    sexp = sexp.replace(/\n\.\./g, " ") // "\n.." => " "
+    sexp = sexp.replace(/\s+/g, " "); // eg "  " => " "
+    sexp = sexp.replace(/\s+\)/g, ")"); // eg " )" => ")"
+    sexp = sexp.replace(/\(\s+/g, "("); // eg "( " => "("
+    console.log(sexp);
 	
 	if (sexp == '()') {
 		return [];
@@ -416,21 +420,25 @@ function evaluate(sexp, environment, noArgEvaluation) {
 				
 			// JavaScript hook
 			case 'js-apply':
-				function prepareArg(arg) {
+				function prepareArg(arg, isObj) {
 					if (typeof arg == 'object') { 
-						return arg.join(','); 
+						arg = arg.map(function (elt) {
+							return prepareArg(elt);
+						}).join(','); 
+						if (isObj) {
+							arg = '[' + arg + ']';
+						}
 					} else if (typeof arg == 'string') {
-						return "'" + arg + "'";
-					} else {
-						return arg;
+						arg = "'" + arg + "'";
 					}
+					return arg;
 				}
 			
 				var jsFunc = args[0];
 				if (args.length == 2) {
 					var jsArgs = prepareArg(args[1]);
 				} else if (args.length == 3) {
-					var jsObj = prepareArg(args[1]);
+					var jsObj = prepareArg(args[1], true);
 					jsFunc = jsObj + '.' + jsFunc;
 					var jsArgs = prepareArg(args[2]);
 				} else {

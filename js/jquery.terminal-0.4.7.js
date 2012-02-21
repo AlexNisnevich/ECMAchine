@@ -1120,6 +1120,12 @@ function get_stack(caller) {
                     }
 					return true;
 				} else if (e.keyCode == 13) { //enter
+					if (command.split('(').length > command.split(')').length) { 
+						// expression not complete
+						terminal.set_command(command + '\n..  ');
+						return;
+					}
+					
                     if (history && command) {
                         history.append(command);
                     }
