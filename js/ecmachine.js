@@ -59,8 +59,7 @@ function parse(sexp) {
     sexp = sexp.replace(/\s+/g, " "); // eg "  " => " "
     sexp = sexp.replace(/\s+\)/g, ")"); // eg " )" => ")"
     sexp = sexp.replace(/\(\s+/g, "("); // eg "( " => "("
-    console.log(sexp);
-	
+    
 	if (sexp == '()') {
 		return [];
 	} else if (sexp[0] == '(') {
@@ -83,10 +82,10 @@ function parse(sexp) {
 function evaluate(sexp, environment, noArgEvaluation) {
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
-			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
+			'define', 'if', 'lambda', 'λ', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
 		'ls', 'cd', 'read', 'exec', 'mkdir', 'new', 'save', 'help', 'append', 'path', 
 			'rm', 'mv', 'cp', 'file?', 'dir?', 'time', 'do-nothing',
-		'processes', 'start', 'peek', 'kill', 'overlay'
+		'processes', 'start', 'peek', 'kill', 'overlay', 'js-apply'
 	];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'λ', 'map', 'filter'];
 	
@@ -309,30 +308,32 @@ function evaluate(sexp, environment, noArgEvaluation) {
 			case 'help':
 				return 'The following LISP commands are supported:' + 
 						'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, filter, if, lambda, length, list, map, not, or, quote' + 
-					'\nThe following file-system commands are supported:' +
-						'\n\t (ls)                   Lists the contents of the current directory' +
-						'\n\t (cd [[i;;]path])              Navigates to another directory' +
-						'\n\t (path [[i;;]dir1 dir2 ...])   Constructs a path string [[i;;](e.g. dir1/dir2)] from a list of subdirectories' +
-						'\n\t (read [[i;;]filepath])        Displays the contents of a file' +
-						'\n\t (exec [[i;;]filepath])        Executes a LISP file' +
-						'\n\t (mkdir [[i;;]name])           Creates a new directory' +
-						'\n\t (new [[i;;]path])             Creates a new file' +
-						'\n\t (save [[i;;]path text])       Saves text to a file, replacing current contents if the file already exists' +
-						'\n\t (append [[i;;]path text])     Appends text to an existing file' +
-						'\n\t (mv [[i;;]oldpath newpath])   Moves a file or directory to a new location' +
-						'\n\t (cp [[i;;]oldpath newpath])   Copies a file or directory to a new location' +
-						'\n\t (rm [[i;;]path])              Removes a file or directory' +
-						'\n\t (file? [[i;;]path])           Returns whether there is a file at the given path' +
-						'\n\t (dir? [[i;;]path])            Returns whether there is a directory at the given path' +
-						'\n\t (time [[[i;;]format]])        Displays the current time' + 
-						'\n\t (do-nothing)			 Dummy command' +
-						'\n\t (help)                 Displays this help screen' +
-					'\nThe following commands for dealing with processes are supported:' +
-						'\n\t (processes)            Lists the PIDs and filenames of the currently running processes' +
-						'\n\t (start [[i;;]path interval])  Starts a LISP program from a file, with the specified refresh rate (in ms)' +
-						'\n\t (peek [[i;;]pid])             Shows the code for the process with the specified PID' +
-						'\n\t (kill [[i;;]pid])             Kills the process with the specified PID' +
-						'\n\t (overlay [[i;;]txt x y id])   Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen'
+					'\nFile system commands:' +
+						'\n\t (ls)                       Lists the contents of the current directory' +
+						'\n\t (cd [[i;;]path])                  Navigates to another directory' +
+						'\n\t (path [[i;;]dir1 dir2] [...])     Constructs a path string [[i;;](e.g. dir1/dir2)] from a list of subdirectories' +
+						'\n\t (read [[i;;]filepath])            Displays the contents of a file' +
+						'\n\t (exec [[i;;]filepath])            Executes a LISP file' +
+						'\n\t (mkdir [[i;;]name])               Creates a new directory' +
+						'\n\t (new [[i;;]path])                 Creates a new file' +
+						'\n\t (save [[i;;]path text])           Saves text to a file, replacing current contents if the file already exists' +
+						'\n\t (append [[i;;]path text])         Appends text to an existing file' +
+						'\n\t (mv [[i;;]oldpath newpath])       Moves a file or directory to a new location' +
+						'\n\t (cp [[i;;]oldpath newpath])       Copies a file or directory to a new location' +
+						'\n\t (rm [[i;;]path])                  Removes a file or directory' +
+						'\n\t (file? [[i;;]path])               Returns whether there is a file at the given path' +
+						'\n\t (dir? [[i;;]path])                Returns whether there is a directory at the given path' +
+					'\nProcess commands:' +
+						'\n\t (processes)                Lists the PIDs and filenames of the currently running processes' +
+						'\n\t (start [[i;;]path interval])      Starts a LISP program from a file, with the specified refresh rate (in ms)' +
+						'\n\t (peek [[i;;]pid])                 Shows the code for the process with the specified PID' +
+						'\n\t (kill [[i;;]pid])                 Kills the process with the specified PID' +
+					'\nMiscellaneous commands:' +
+						'\n\t (js-apply [[i;;]func] [[[i;;]obj]] [[i;;]args]) Executes a JavaScript function' +
+						'\n\t (time [[[i;;]format]])            Displays the current time' + 
+						'\n\t (overlay [[i;;]txt x y id])       Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen' +
+						'\n\t (do-nothing)               Dummy command' +
+						'\n\t (help)                     Displays this help screen'
 					;
 			case 'path':
 				return args.join('/').replace('//','/');
