@@ -11,15 +11,18 @@
     <script src="js/filesystem.js"></script>
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     <script>
+    var terminal = null;
+    
     jQuery(document).ready(function($) {
 	    $(document.documentElement).terminal(function(command, term) {
+	    	terminal = term;
 	        if (command !== '') {
-        		var result = evaluate(parse(command), globalEnvironment, term);
+        		var result = evaluate(parse(command), globalEnvironment);
         		if (result !== undefined) {
-	                term.echo(String(result));
+	                terminalEcho(String(result));
 	            }
 	        } else {
-	           term.echo('');
+	           terminalEcho('');
 	        }
 	        $(document).scrollTop($(document).height());
 		}, {
@@ -34,6 +37,14 @@
 	    $('body').css('display', 'none');
 	    $('<div>').attr('id', 'overlays').appendTo('.terminal');
 	});
+	
+	/*
+	 * Process and display output
+	 */
+	function terminalEcho(str) {
+		str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+		terminal.echo(str);
+	}
     </script>
     <script type="text/javascript">
 

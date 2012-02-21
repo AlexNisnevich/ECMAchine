@@ -3,7 +3,6 @@
  */
 Array.prototype.toString = function() {
 	var sexp = '(' + this.join(' ') + ')';
-	sexp = sexp.replace(/lambda/g, '&lambda;');
 	return sexp;
 };
 
@@ -77,7 +76,7 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp, environment, term, noArgEvaluation) {
+function evaluate(sexp, environment, noArgEvaluation) {
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
 			'define', 'if', 'lambda', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',
@@ -87,7 +86,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 	];
 	var controlFlowStatements = ['if', 'cond', 'quote', 'begin', 'define', 'lambda', 'λ', 'map', 'filter'];
 	
-	console.log(sexp); // for debugging
+	//console.log(sexp); // for debugging
 	
 	if (typeof sexp != 'object') { // atom
 		if (sexp == '#t') {
@@ -114,7 +113,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 		// evaluate arguments
 		var args = [];
 		for (var i = 1; i < sexp.length; i++) {
-			var evaluatedArg = evaluate(sexp[i], environment, term);
+			var evaluatedArg = evaluate(sexp[i], environment);
 			if (evaluatedArg !== undefined) {
 				args.push(evaluatedArg);
 			} else {
@@ -134,7 +133,7 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 		for (var i = 0; i < func.arguments.length; i++) {
 			// if method call or quoted string, evaluate
 			if (typeof args[i] == 'object' || (args[i][0] && args[i][0] == "'")) {
-				args[i] = evaluate(args[i], environment, term);
+				args[i] = evaluate(args[i], environment);
 			}
 			lambdaEnvironment[func.arguments[i]] = args[i];
 		}
@@ -188,16 +187,16 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				
 			// Conditionals
 			case 'if':
-				if (evaluate(args[0], environment, term)) {
-					return evaluate(args[1], environment, term);
+				if (evaluate(args[0], environment)) {
+					return evaluate(args[1], environment);
 				} else {
-					return evaluate(args[2], environment, term);
+					return evaluate(args[2], environment);
 				}
 			case 'cond':
 				for (var i = 0; i < args.length; i++) {
 					var condBlock = args[i];
-					if (evaluate(condBlock[0], environment, term)) {
-						return evaluate(condBlock[1], environment, term);
+					if (evaluate(condBlock[0], environment)) {
+						return evaluate(condBlock[1], environment);
 					}
 				}
 			
@@ -239,24 +238,24 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				return args[0];
 			case 'begin':
 				for (var i = 0; i < args.length - 1; i++) {
-					evaluate(args[i], environment, term);
+					evaluate(args[i], environment);
 				}
-				return evaluate(args[args.length - 1], environment, term);
+				return evaluate(args[args.length - 1], environment);
 			case 'length':
 				return args[0].length;
 			
 			// Higher-order functions
 			case 'map':
 				var fn = args[0];
-				var lst = evaluate(args[1], environment, term);
+				var lst = evaluate(args[1], environment);
 				return lst.map(function (elt) {
-					return evaluate(new Array(fn, elt), environment, term, true);
+					return evaluate(new Array(fn, elt), environment, true);
 				});
 			case 'filter':
-				var cond = evaluate(args[0], environment, term);
-				var lst = evaluate(args[1], environment, term);
+				var cond = evaluate(args[0], environment);
+				var lst = evaluate(args[1], environment);
 				return lst.filter(function (elt) {
-					return evaluate(new Array(cond, elt), environment, term, true);
+					return evaluate(new Array(cond, elt), environment, true);
 				});
 			
 			// Filesystem
@@ -264,13 +263,13 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				return Filesystem.listFiles(args[0]);
 			case 'cd':
 				var newPath = Filesystem.navigate(args[0]);
-				term.set_prompt('ecmachine:' + newPath + ' guest$');
+				terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 				return;
 			case 'read':
 				return Filesystem.readFile(args[0]);
 			case 'exec':
 				var contents = Filesystem.readFile(args[0]);
-				return evaluate(parse(contents), globalEnvironment, term);
+				return evaluate(parse(contents), globalEnvironment);
 			case 'mkdir':
 				var path = Filesystem.makeDir(args[0]);
 				return new Array('Directory ' + path + ' created');
@@ -367,13 +366,13 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				var contents = Filesystem.readFile(args[0]);
 				
 				// start interval
-				var interval = setInterval(function (term) {
-					var result = evaluate(parse(contents), globalEnvironment, term);
+				var interval = setInterval(function () {
+					var result = evaluate(parse(contents), globalEnvironment);
 					if (result !== undefined) {
-						term.echo(result);
+						terminalEcho(result);
 						$(document).scrollTop($(document).height());
 					}
-				}, evaluate(args[1], environment, term), term);
+				}, evaluate(args[1], environment));
 				
 				// add to process list
 				var pid = processes.push({
@@ -384,8 +383,8 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 				}) - 1;
 				
 				// and run it once right now
-				term.echo(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
-				return evaluate(parse(contents), globalEnvironment, term);
+				terminalEcho(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
+				return evaluate(parse(contents), globalEnvironment);
 			case 'peek':
 				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 					throw 'There is no process with PID ' + args[0];
@@ -414,6 +413,31 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 					overlay.css('bottom', -y);
 				}
 				return;
+				
+			// JavaScript hook
+			case 'js-apply':
+				function prepareArg(arg) {
+					if (typeof arg == 'object') { 
+						return arg.join(','); 
+					} else if (typeof arg == 'string') {
+						return "'" + arg + "'";
+					} else {
+						return arg;
+					}
+				}
+			
+				var jsFunc = args[0];
+				if (args.length == 2) {
+					var jsArgs = prepareArg(args[1]);
+				} else if (args.length == 3) {
+					var jsObj = prepareArg(args[1]);
+					jsFunc = jsObj + '.' + jsFunc;
+					var jsArgs = prepareArg(args[2]);
+				} else {
+					throw 'Eval error: js-apply takes 2 or 3 arguments';
+				}
+				
+				return eval(jsFunc + '(' + jsArgs + ')');
 			
 			// Not a built-in function: find function in environment and evaluate
 			default:
@@ -421,13 +445,13 @@ function evaluate(sexp, environment, term, noArgEvaluation) {
 					throw 'Eval Error: function "' + func + '" does not exist';
 				}
 				var newSexp = clone(sexp);
-				newSexp[0] = evaluate(environment[func], environment, term);
-				return evaluate(newSexp, environment, term);
+				newSexp[0] = evaluate(environment[func], environment);
+				return evaluate(newSexp, environment);
 		}
 	} else if (typeof func == 'object') {
 		// Evaluate this function
-		sexp[0] = evaluate(func, environment, term);
-		return evaluate(sexp, environment, term);
+		sexp[0] = evaluate(func, environment);
+		return evaluate(sexp, environment);
 	} else {
 		throw 'Eval Error: ' + func + ' is not a function';
 	}
