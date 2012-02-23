@@ -7,7 +7,7 @@
     <script src="js/jquery.mousewheel-min.js"></script>
     <script src="js/jquery.terminal-0.4.7.js"></script>
     <script src="js/environment.js"></script>
-    <script src="js/ecmachine.js"></script>
+    <script src="js/evaluator.js"></script>
     <script src="js/filesystem.js"></script>
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     <script>
@@ -17,7 +17,7 @@
 	    $(document.documentElement).terminal(function(command, term) {
 	    	terminal = term;
 	        if (command !== '') {
-        		var result = evaluate(parse(command), globalEnvironment);
+        		var result = evaluate(command);
         		if (result !== undefined) {
 	                terminalEcho(String(result));
 	            }
@@ -32,7 +32,8 @@
 	        prompt: 'ecmachine:/ guest$',
 	        onInit: function(term) {
 	        	terminal = term;
-	        	startFileSystem(terminal);
+	        	initEvaluator();
+	        	initFileSystem();
 	        }
 		});
 	    $('body').css('display', 'none');

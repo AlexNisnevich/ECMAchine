@@ -79,7 +79,7 @@ function parse(sexp) {
 /*
  * Evaluates a parsed S-expression, Lisp-style
  */
-function evaluate(sexp, environment, noArgEvaluation) {
+function old_evaluate(sexp, environment, noArgEvaluation) {
 	var builtInFunctions = [
 		'+', '-', '*', '/', '>', '<', '=', 'and', 'begin', 'car', 'cdr', 'cond', 'cons', 
 			'define', 'if', 'lambda', 'λ', 'length', 'list', 'map', 'not', 'or', 'quote', 'filter',

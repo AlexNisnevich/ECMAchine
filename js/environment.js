@@ -1,6 +1,5 @@
-var processes = [];
 
-var globalEnvironment = {
+var fileSystemFrame = {
 	'__fileSystem': {
 		'/': {
 			'README': {
@@ -54,7 +53,7 @@ var globalEnvironment = {
 			'utility.lsp': {
 				'type': 'file',
 				'contents': "(begin" +
-					      "\n       (define nil ())" +
+					      "\n       (define nil '())" +
 						  "\n	    (define null? (lambda (lst) (= (length lst) 0))))"
 			},
 			'math.lsp': {

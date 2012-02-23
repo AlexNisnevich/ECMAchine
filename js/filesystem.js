@@ -1,6 +1,7 @@
+
 var Filesystem = {
-	fs: globalEnvironment['__fileSystem'], // path to file system
-	currentDir: globalEnvironment['__currentDir'], // current directory
+	fs: fileSystemFrame['__fileSystem'], // path to file system
+	currentDir: fileSystemFrame['__currentDir'], // current directory
 	
 	//
 	// HELPER FUNCTIONS
@@ -249,12 +250,15 @@ var Filesystem = {
 	}
 };
 
-function startFileSystem(term) {
-	term.echo('Launching filesystem ...');
+function initFileSystem() {
+	terminalEcho('Launching filesystem ...');
+	
+	// Add file system frame to environment
+	globalEnvironment.push(fileSystemFrame);
 	
 	// Run all files in /startup
 	for (var fname in Filesystem.getDir('/startup')) {
 		var contents = Filesystem.getFile('/startup/' + fname).contents;
-		evaluate(parse(contents), globalEnvironment, term);
+		evaluate(contents);
 	}
 }
