@@ -5,8 +5,15 @@
 
 var globalEnvironment = [];
 var globalFrame = {};
+
 var processes = [];
 var currentPID = null;
+var terminalProcess = {
+	// Performance
+	'timeStarted': new Date().getTime(),
+	'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
+	'evals': 0
+};
 
 /*
  * Modify toString behavior of lists to Lisp style
@@ -176,9 +183,13 @@ function defineVariable(variable, val, env) {
 
 function lispEval(exp, env) {
 	// console.log('Evaluating: ' + exp + ' (Process ' + currentPID + ')');
+
 	if (currentPID !== null) {
-		processes[currentPID].evals++;
+		var process = processes[currentPID];
+	} else {
+		var process = terminalProcess;
 	}
+	process.evals++;
 	
 	// Detectors
 	function isSelfEvaluating(exp) { 
@@ -595,7 +606,7 @@ var primitiveProcedures = {
 	
 	// Processes
 	'processes': function (args) {
-		var procs = [];
+		var procs = [[-1, 'Terminal']];
 		for (var pid = 0; pid < processes.length; pid++) {
 			if (!processes[pid].terminated) {
 				procs.push(new Array(pid, processes[pid].name));
@@ -619,7 +630,7 @@ var primitiveProcedures = {
 		
 		// add to process list
 		processes.push({
-			'name': args[0],
+			'name': Filesystem.getNameFromPath(args[0]),
 			'process': interval,
 			'code': contents,
 			'terminated': false,
@@ -636,22 +647,31 @@ var primitiveProcedures = {
 		return evaluate(contents, pid);
 	},
 	'peek': function (args) {
-		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
+		if (args[0] == -1) {
+			return '#<Terminal>'
+		} else if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 			throw 'There is no process with PID ' + args[0];
 		}
 		return processes[args[0]].code;
 	},
 	'performance': function (args) {
-		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
-			throw 'There is no process with PID ' + args[0];
+		if (args[0] == -1) {
+			var proc = terminalProcess;
+		} else {
+			if (processes[args[0]] === undefined || processes[args[0]].terminated) {
+				throw 'There is no process with PID ' + args[0];
+			}
+			var proc = processes[args[0]];
 		}
-		var proc = processes[args[0]];
+		
 		var evalsPerMS = proc.evals / (proc.timeElapsed());
 		var evalsPerSec = Math.round(evalsPerMS * 1000000)/1000;
 		return evalsPerSec;
 	},
 	'kill': function (args) {
-		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
+		if (args[0] == -1) {
+			throw 'Can\'t kill terminal';
+		} if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 			throw 'There is no process with PID ' + args[0];
 		}
 		clearInterval(processes[args[0]].process);
