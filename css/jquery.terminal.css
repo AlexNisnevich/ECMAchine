@@ -69,4 +69,7 @@
 	position: fixed;
 	padding: 5px;
 	border: 1px solid #666;
+	z-index: 1;
+	background: black;
+	border-radius: 5px;
 }    

@@ -44,13 +44,13 @@ var fileSystemFrame = {
 			},
 			'processmonitor.app': {
 				'type': 'file',
-				'contents': "(define perfInfo (sort" +
+				'contents': "(define perfmon.perfInfo (sort" +
 								"\n    (map " +
 					      "\n        (lambda (proc) (list (cadr proc) (performance (car proc))))" +
 					      "\n        (processes))" +
 					      "\n    (lambda (proc) (- (cadr proc)))))" +
-					      "\n(define header (list 'Processes '{evals/sec}))" +
-					      "\n(overlay (intersperse (cons header perfInfo) (newline)) -30 30 'procMon)"
+					      "\n(define perfmon.header (list 'Processes '{evals/sec}))" +
+					      "\n(overlay (intersperse (cons perfmon.header perfmon.perfInfo) (newline)) -30 30 'procMon)"
 			},
 			'killeverything.app': {
 				'type': 'file',
@@ -71,7 +71,11 @@ var fileSystemFrame = {
 									"\n(define intersperse (lambda (x y)" +
 									"\n    (if (= (length x) 1)" +
 									"\n        x" +
-									"\n        (cons (car x) (cons y (intersperse (cdr x) y))))))"
+									"\n        (cons (car x) (cons y (intersperse (cdr x) y))))))" +
+									"\n(define sum (lambda (lst)" +
+									"\n    (if (null? lst)" +
+									"\n        0" + 
+									"\n        (+ (car lst) (sum (cdr lst))))))"
 			},
 			'mapreduce.lsp': {
 				'type': 'file',
@@ -98,6 +102,17 @@ var fileSystemFrame = {
 					        "\n        (* x (fact (- x 1))))))" +
 					        "\n(define math (lambda (func args)" +
 					        "\n    (js-apply (+ 'Math. func) args)))"
+			},
+			'files.lsp': {
+				'type': 'file',
+				'contents': "(define size (lambda (item)" +
+									"\n   (cond ((file? item) (length (read item)))" +
+									"\n   ((dir? item) (begin" +
+									"\n       (cd item)" +
+									"\n       (define temp (sum (map size (ls))))" + 
+									"\n       (cd '..)" +
+									"\n       temp))" +
+									"\n   (else 0))))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',

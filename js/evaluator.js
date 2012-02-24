@@ -50,17 +50,18 @@ function evalSequence(exps, env) {
  */
 
 function initEvaluator() {
-    for (var primitive in primitiveProcedures) {
-        globalFrame[primitive] = {
-            'primitive': true,
-            'name': primitive,
-            'body': primitiveProcedures[primitive],
-            toString: function () {
-            	return "#<Function " + this.name + ">";
-            }
-        };
-    }
-    globalEnvironment.push(globalFrame);
+	terminalEcho('Launching LISP evaluator ...');
+  for (var primitive in primitiveProcedures) {
+      globalFrame[primitive] = {
+          'primitive': true,
+          'name': primitive,
+          'body': primitiveProcedures[primitive],
+          toString: function () {
+          	return "#<Function " + this.name + ">";
+          }
+      };
+  }
+  globalEnvironment.push(globalFrame);
 }
 
 function evaluate(command, pid) {
