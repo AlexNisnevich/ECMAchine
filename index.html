@@ -24,7 +24,6 @@
 	        } else {
 	           terminalEcho('');
 	        }
-	        $(document).scrollTop($(document).height());
 		}, {
 	        greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
 	        name: 'terminal',
@@ -46,6 +45,7 @@
 	function terminalEcho(str) {
 		str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
 		terminal.echo(str);
+		$(document).scrollTop($(document).height());
 	}
     </script>
     <script type="text/javascript">

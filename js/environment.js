@@ -1,6 +1,7 @@
 
 var fileSystemFrame = {
 	'__fileSystem': {
+		toString: function () { return '#<FileSystem>'},
 		'/': {
 			'README': {
 				'type': 'file',
