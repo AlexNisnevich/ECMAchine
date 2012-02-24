@@ -339,21 +339,21 @@ function old_evaluate(sexp, environment, noArgEvaluation) {
 				return args.join('/').replace('//','/');
 			case 'time':
 				var date = new Date();
-                if (args[0] == null)
-                	return date.getTime();
-                else 
-                	return args[0].map(function (str) {
-                		switch (str) {
-                			case 'h':
-                				return date.getHours();
-            				case 'm':
-            					return date.getMinutes();
-        					case 's':
-        						return date.getSeconds();
-    						default:
-    							return str;
-                		}
-                	});
+        if (args[0] == null)
+        	return date.getTime();
+        else 
+        	return args[0].map(function (str) {
+        		switch (str) {
+        			case 'h':
+        				return date.getHours();
+    				case 'm':
+    					return date.getMinutes();
+					case 's':
+						return date.getSeconds();
+				default:
+					return str;
+        		}
+        	});
 			case 'do-nothing':
 				return;
 			
@@ -372,12 +372,11 @@ function old_evaluate(sexp, environment, noArgEvaluation) {
 				
 				// start interval
 				var interval = setInterval(function () {
-					var result = evaluate(parse(contents), globalEnvironment);
+					var result = evaluate(contents);
 					if (result !== undefined) {
 						terminalEcho(result);
-						$(document).scrollTop($(document).height());
 					}
-				}, evaluate(args[1], environment));
+				}, args[1]);
 				
 				// add to process list
 				var pid = processes.push({
@@ -389,7 +388,7 @@ function old_evaluate(sexp, environment, noArgEvaluation) {
 				
 				// and run it once right now
 				terminalEcho(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
-				return evaluate(parse(contents), globalEnvironment);
+				return evaluate(contents);
 			case 'peek':
 				if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 					throw 'There is no process with PID ' + args[0];

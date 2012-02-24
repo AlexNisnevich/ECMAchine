@@ -43,7 +43,7 @@
 	 * Process and display output
 	 */
 	function terminalEcho(str) {
-		str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+		str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
 		terminal.echo(str);
 		$(document).scrollTop($(document).height());
 	}

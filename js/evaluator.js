@@ -558,12 +558,11 @@ var primitiveProcedures = {
 		
 		// start interval
 		var interval = setInterval(function () {
-			var result = evaluate(parse(contents), globalEnvironment);
+			var result = evaluate(contents);
 			if (result !== undefined) {
 				terminalEcho(result);
-				$(document).scrollTop($(document).height());
 			}
-		}, evaluate(args[1], environment));
+		}, args[1]);
 		
 		// add to process list
 		var pid = processes.push({
@@ -575,7 +574,7 @@ var primitiveProcedures = {
 		
 		// and run it once right now
 		terminalEcho(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
-		return evaluate(parse(contents), globalEnvironment);
+		return evaluate(contents);
 	},
 	'peek': function (args) {
 		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
