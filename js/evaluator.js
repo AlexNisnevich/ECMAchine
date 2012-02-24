@@ -6,6 +6,7 @@
 var globalEnvironment = [];
 var globalFrame = {};
 var processes = [];
+var currentPID = null;
 
 /*
  * Modify toString behavior of lists to Lisp style
@@ -55,7 +56,12 @@ function initEvaluator() {
     globalEnvironment.push(globalFrame);
 }
 
-function evaluate(command) {
+function evaluate(command, pid) {
+	if (pid !== undefined) {
+		currentPID = pid;
+	} else {
+		currentPID = null;
+	}
 	command = '(begin ' + command + ')';
 	return lispEval(parse(command), globalEnvironment);
 }
@@ -94,16 +100,16 @@ function parse(sexp) {
     	return tokens;
     };
     
-    // do ( and ) match?
+  // do ( and ) match?
 	if (sexp.split('(').length != sexp.split(')').length) { 
 		throw 'Parse Error: Parentheses do not match'; 
 	}
     
-    // trim
-    sexp = sexp.replace(/\n\.\./g, " ") // "\n.." => " "
-    sexp = sexp.replace(/\s+/g, " "); // eg "  " => " "
-    sexp = sexp.replace(/\s+\)/g, ")"); // eg " )" => ")"
-    sexp = sexp.replace(/\(\s+/g, "("); // eg "( " => "("
+  // trim
+  sexp = sexp.replace(/\n\.\./g, " ") // "\n.." => " "
+  sexp = sexp.replace(/\s+/g, " "); // eg "  " => " "
+  sexp = sexp.replace(/\s+\)/g, ")"); // eg " )" => ")"
+  sexp = sexp.replace(/\(\s+/g, "("); // eg "( " => "("
     
 	if (sexp == '()') {
 		return [];
@@ -169,7 +175,10 @@ function defineVariable(variable, val, env) {
 // Here come the eval and apply!
 
 function lispEval(exp, env) {
-	console.log('Evaluating: ' + exp);
+	// console.log('Evaluating: ' + exp + ' (Process ' + currentPID + ')');
+	if (currentPID !== null) {
+		processes[currentPID].evals++;
+	}
 	
 	// Detectors
 	function isSelfEvaluating(exp) { 
@@ -304,7 +313,7 @@ function lispEval(exp, env) {
 }
 
 function lispApply(procedure, arguments) {
-	console.log('Applying: ' + procedure + ' to ' + arguments);
+	// console.log('Applying: ' + procedure + ' to ' + arguments);
 	
 	function isPrimitiveProcedure(procedure) {
 		return procedure.primitive !== undefined;
@@ -452,6 +461,28 @@ var primitiveProcedures = {
 		return args[0].length;
 	},
 	
+	// Misc Lisp
+	'do-nothing': function () {
+		return;
+	},
+	'newline': function () {
+		return '\n';
+	},
+	'sort': function (args) {
+		// This doesn't NEED to be a primitive, but it's a pain to implement,
+		// and I'd rather use JavaScript's underlying sort
+		// Usage: (sort lst [keyfunc])
+		return args[0].sort(function (a, b) {
+			var keyA = (args.length > 1) ? lispApply(args[1], [a]) : a;
+			var keyB = (args.length > 1) ? lispApply(args[1], [b]) : b;
+			if (keyA < keyB)
+				return -1;
+			if (keyA > keyB)
+				return 1;
+			return 0;
+		});
+	},
+	
 	// ECMAchine general
 	'help': function (args) {
 		return 'The following LISP commands are supported:' + 
@@ -486,24 +517,21 @@ var primitiveProcedures = {
 	},
 	'time': function (args) {
 		var date = new Date();
-            if (args[0] == null)
-            	return date.getTime();
-            else 
-            	return args[0].map(function (str) {
-            		switch (str) {
-            			case 'h':
-            				return date.getHours();
-        				case 'm':
-        					return date.getMinutes();
-    					case 's':
-    						return date.getSeconds();
-						default:
-							return str;
-            		}
-            	});
-	},
-	'do-nothing': function (args) {
-		return;
+    if (args[0] == null)
+    	return date.getTime();
+    else 
+    	return args[0].map(function (str) {
+    		switch (str) {
+    			case 'h':
+    				return date.getHours();
+				case 'm':
+					return date.getMinutes();
+			case 's':
+				return date.getSeconds();
+		default:
+			return str;
+    		}
+    	});
 	},
 	
 	// Filesystem
@@ -579,31 +607,48 @@ var primitiveProcedures = {
 		// get program
 		var contents = Filesystem.readFile(args[0]);
 		
+		var pid = processes.length;
+		
 		// start interval
 		var interval = setInterval(function () {
-			var result = evaluate(contents);
+			var result = evaluate(contents, pid);
 			if (result !== undefined) {
 				terminalEcho(result);
 			}
 		}, args[1]);
 		
 		// add to process list
-		var pid = processes.push({
+		processes.push({
 			'name': args[0],
 			'process': interval,
 			'code': contents,
-			'terminated': false
-		}) - 1;
+			'terminated': false,
+			
+			// Performance
+			'timeStarted': new Date().getTime(),
+			'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
+			'interval': args[1],
+			'evals': 0
+		});
 		
 		// and run it once right now
 		terminalEcho(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
-		return evaluate(contents);
+		return evaluate(contents, pid);
 	},
 	'peek': function (args) {
 		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
 			throw 'There is no process with PID ' + args[0];
 		}
 		return processes[args[0]].code;
+	},
+	'performance': function (args) {
+		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
+			throw 'There is no process with PID ' + args[0];
+		}
+		var proc = processes[args[0]];
+		var evalsPerMS = proc.evals / (proc.timeElapsed());
+		var evalsPerSec = Math.round(evalsPerMS * 1000000)/1000;
+		return evalsPerSec;
 	},
 	'kill': function (args) {
 		if (processes[args[0]] === undefined || processes[args[0]].terminated) {
@@ -615,10 +660,13 @@ var primitiveProcedures = {
 	},
 	'overlay': function (args) {
 		// (overlay txt x y id)
-		var name = args[3], txt = args[0], x = args[1], y = args[2];
+		var name = args[3];
+		var txt = args[0].toString().replace(/\n/g, '<br />');
+		var x = args[1], y = args[2];
+		
 		$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any
 		var overlay = $('<div>').attr('id', name).appendTo('#overlays');
-		overlay.text('' + txt);
+		overlay.html(txt);
 		if (x >= 0) {
 			overlay.css('left', x);
 		} else {

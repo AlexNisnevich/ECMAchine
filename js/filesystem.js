@@ -1,7 +1,7 @@
 
 var Filesystem = {
 	fs: fileSystemFrame['__fileSystem'], // path to file system
-	currentDir: fileSystemFrame['__currentDir'], // current directory
+	currentDir: '/', // current directory
 	
 	//
 	// HELPER FUNCTIONS

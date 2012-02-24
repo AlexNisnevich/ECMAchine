@@ -30,6 +30,10 @@ var fileSystemFrame = {
 				'type': 'file',
 				'contents': "(overlay (time (list 'h ': 'm ': 's)) -30 -30 'clock)"
 			},
+			'unixclock.app': {
+				'type': 'file',
+				'contents': "(overlay (time) -30 -65 'unixclock)"
+			},
 			'virushunter.app': {
 				'type': 'file',
 				'contents': "(if (file? (path '/ 'virus))" +
@@ -37,6 +41,16 @@ var fileSystemFrame = {
 					      "\n             (rm 'virus)" +
 					      "\n             (quote (Virus removed!)))" +
 					      "\n      (do-nothing))"
+			},
+			'processmonitor.app': {
+				'type': 'file',
+				'contents': "(define perfInfo (sort" +
+								"\n    (map " +
+					      "\n        (lambda (proc) (list (cadr proc) (performance (car proc))))" +
+					      "\n        (processes))" +
+					      "\n    (lambda (proc) (- (cadr proc)))))" +
+					      "\n(define header (list 'Processes '{evals/sec}))" +
+					      "\n(overlay (intersperse (cons header perfInfo) (newline)) -30 30 'procMon)"
 			},
 			'killeverything.app': {
 				'type': 'file',
@@ -47,15 +61,17 @@ var fileSystemFrame = {
 			}
 		},
 		'/startup': {
-			/*'clock.lnk': {
-				'type': 'file',
-				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
-			},*/
+			// Lisp functions
 			'utility.lsp': {
 				'type': 'file',
-				'contents': "(define else #t)" +
+				'contents': "(define cadr (lambda (x) (car (cdr x))))" +
+									"\n(define else #t)" +
 						      "\n(define nil '())" +
-									"\n(define null? (lambda (lst) (= (length lst) 0)))"
+									"\n(define null? (lambda (lst) (= (length lst) 0)))" +
+									"\n(define intersperse (lambda (x y)" +
+									"\n    (if (= (length x) 1)" +
+									"\n        x" +
+									"\n        (cons (car x) (cons y (intersperse (cdr x) y))))))"
 			},
 			'mapreduce.lsp': {
 				'type': 'file',
@@ -86,11 +102,20 @@ var fileSystemFrame = {
 			'justforfun.lsp': {
 				'type': 'file',
 				'contents': "(define smile (lambda () ':-}))"
+			},
+			
+			// Startup applications
+			'clock.lnk': {
+				'type': 'file',
+				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
+			},
+			'pmon.lnk': {
+				'type': 'file',
+				'contents': "(start (path '/ 'apps 'processmonitor.app) 1000)"
 			}
 		},
 		'/usr': {
 			
 		}
-	},
-	'__currentDir': '/'
+	}
 };
