@@ -53,22 +53,35 @@ var fileSystemFrame = {
 			},*/
 			'utility.lsp': {
 				'type': 'file',
-				'contents': "(begin" +
-					      "\n       (define nil '())" +
-						  "\n	    (define null? (lambda (lst) (= (length lst) 0))))"
+				'contents': "(define else #t)" +
+						      "\n(define nil '())" +
+									"\n(define null? (lambda (lst) (= (length lst) 0)))"
+			},
+			'mapreduce.lsp': {
+				'type': 'file',
+				'contents': "(define map (lambda (proc items)" +
+									"\n    (if (null? items)" +
+									"\n        nil" +
+									"\n        (cons (proc (car items))" +
+									"\n            (map proc (cdr items))))))" +
+									"\n(define filter (lambda (pred seq)" +
+									"\n	  (cond ((null? seq) nil)" +
+									"\n	  			((pred (car seq))" +
+									"\n		  		 (cons (car seq)" +
+									"\n		  		 			 (filter pred (cdr seq))))" +
+									"\n  				(else (filter pred (cdr seq))))))"
 			},
 			'math.lsp': {
 				'type': 'file',
-				'contents': "(begin" +
-					      "\n       (define abs (lambda (x)" +
-					      "\n             (cond ((> x 0) x)" +
-				      	  "\n                   (#t (- x)))))" +
-					      "\n       (define fact (lambda (x)" +
-					      "\n             (if (= x 1)" +
-					      "\n                 1" +
-					      "\n                 (* x (fact (- x 1))))))" +
-					      "\n       (define math (lambda (func args)" +
-					      "\n             (js-apply (+ 'Math. func) args))))"
+				'contents': "(define abs (lambda (x)" +
+					        "\n    (cond ((> x 0) x)" +
+				      	  "\n        (#t (- x)))))" +
+					        "\n(define fact (lambda (x)" +
+					        "\n    (if (= x 1)" +
+					        "\n        1" +
+					        "\n        (* x (fact (- x 1))))))" +
+					        "\n(define math (lambda (func args)" +
+					        "\n    (js-apply (+ 'Math. func) args)))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',

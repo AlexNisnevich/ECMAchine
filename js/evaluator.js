@@ -175,6 +175,9 @@ function lispEval(exp, env) {
 	function isSelfEvaluating(exp) { 
 		return typeof exp == 'number';
 	}
+	function isBoolean(exp) { 
+		return exp == 'true' || exp == '#t' || exp == 'false' || exp == '#f';
+	}
 	function isVariable(exp) {
 		return typeof exp == 'string';
 	}
@@ -211,6 +214,13 @@ function lispEval(exp, env) {
 	function cdr(exp) {
 		return exp.slice(1);
 	}
+	function getBooleanValue(exp) {
+		if (exp == '#t' || exp == 'true') {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	function textOfQuotation(exp) {
 		if (typeof exp == 'string') {
 			return parse(cdr(exp));
@@ -242,6 +252,16 @@ function lispEval(exp, env) {
 			return exp[3] !== undefined ? lispEval(exp[3], env) : false;
 		}
 	}
+	function evalCond(exp, env) {
+		var condBlocks = cdr(exp);
+		for (var i = 0; i < condBlocks.length; i++) {
+			var block = condBlocks[i];
+			if (lispEval(block[0], env) == true) {
+				return lispEval(block[1], env);
+			}
+		}
+		return false;
+	}
 	function makeProcedure(parameters, body, environment) {
 		var paramsList = []; for (var i = 0; i < arguments.length; i++) { paramsList.push(arguments[i]); } // a necessary evil
 
@@ -258,7 +278,9 @@ function lispEval(exp, env) {
 	
 	if (isSelfEvaluating(exp)) {
 		return exp;
-	} else if (isQuoted(exp)) {
+	} else if (isBoolean(exp)) {
+		return getBooleanValue(exp);
+	}else if (isQuoted(exp)) {
 		return textOfQuotation(exp);
 	} else if (isVariable(exp)) {
 		return lookupVariableValue(exp, env)
@@ -404,8 +426,9 @@ var primitiveProcedures = {
 		if (args[1].isList) {
 			// (1 (2 3)) => (1 2 3), since we represent everything as lists (not pairs)
 			// in the underlying environment
-			args[1].unshift(args[0]);
-			return args[1];
+			newList = clone(args[1]);
+			newList.unshift(args[0]);
+			return newList;
 		} else {
 			return new Array(args[0], args[1]);
 		}
