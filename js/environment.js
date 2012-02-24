@@ -32,7 +32,7 @@ var fileSystemFrame = {
 			},
 			'unixclock.app': {
 				'type': 'file',
-				'contents': "(overlay (time) -30 -65 'unixclock)"
+				'contents': "(overlay (time) -30 -70 'unixclock)"
 			},
 			'virushunter.app': {
 				'type': 'file',
@@ -50,7 +50,11 @@ var fileSystemFrame = {
 					      "\n        (processes))" +
 					      "\n    (lambda (proc) (- (cadr proc)))))" +
 					      "\n(define perfmon.header (list 'Processes '{evals/sec}))" +
-					      "\n(overlay (intersperse (cons perfmon.header perfmon.perfInfo) (newline)) -30 30 'procMon)"
+					      "\n(overlay (intersperse (cons perfmon.header perfmon.perfInfo) (newline)) -30 70 'procMon)"
+			},
+			'memorymonitor.app': {
+				'type': 'file',
+				'contents': "(overlay (list 'Memory 'used: (/ (size '/) 1000) 'KB) -30 30 'memMon)"
 			},
 			'killeverything.app': {
 				'type': 'file',
@@ -127,6 +131,10 @@ var fileSystemFrame = {
 			'pmon.lnk': {
 				'type': 'file',
 				'contents': "(start (path '/ 'apps 'processmonitor.app) 1000)"
+			},
+			'memmon.lnk': {
+				'type': 'file',
+				'contents': "(start (path '/ 'apps 'memorymonitor.app) 5000)"
 			}
 		},
 		'/usr': {
