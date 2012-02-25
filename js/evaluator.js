@@ -325,7 +325,7 @@ function lispEval(exp, env) {
 }
 
 function lispApply(procedure, arguments) {
-	// console.log('Applying: ' + procedure + ' to ' + arguments);
+	console.log('Applying: ' + procedure + ' to ' + arguments);
 	
 	function isPrimitiveProcedure(procedure) {
 		return procedure.primitive !== undefined;
@@ -431,11 +431,11 @@ var primitiveProcedures = {
 	
 	// Comparisons
 	'=': function (args) {return (args[0] == args[1])},
-	'!=': function (args) {return (args[0] == args[1])},
-	'>': function (args) {return (args[0] == args[1])},
-	'<': function (args) {return (args[0] == args[1])},
-	'>=': function (args) {return (args[0] == args[1])},
-	'<=': function (args) {return (args[0] == args[1])},
+	'!=': function (args) {return (args[0] != args[1])},
+	'>': function (args) {return (args[0] > args[1])},
+	'<': function (args) {return (args[0] < args[1])},
+	'>=': function (args) {return (args[0] >= args[1])},
+	'<=': function (args) {return (args[0] <= args[1])},
 		
 	// Logical
 	'not': function (args) {return !(args[0]);},
@@ -497,8 +497,14 @@ var primitiveProcedures = {
 	
 	// ECMAchine general
 	'help': function (args) {
-		return 'The following LISP commands are supported:' + 
-				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, filter, if, lambda, length, list, map, not, or, quote' + 
+		return 'The following LISP commands are supported as primitives:' + 
+				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, list, not, or, quote' + 
+			'\nThe following LISP commands are among those defined in the standard library (located in /startup):' + 
+				'\n\t abs, cadr, filter, map, null?, sum' + 
+			'\nEnvironment commands:' +
+				'\n\t (environment)              Lists the currently bound variables' +
+				'\n\t (inspect-primitive [[i;;]func])   Shows the JavaScript code of a primitive function' +
+				'\n\t (js-apply [[i;;]func] [[[i;;]obj]] [[i;;]args]) Executes a JavaScript function' +
 			'\nFile system commands:' +
 				'\n\t (ls)                       Lists the contents of the current directory' +
 				'\n\t (cd [[i;;]path])                  Navigates to another directory' +
@@ -519,10 +525,12 @@ var primitiveProcedures = {
 				'\n\t (start [[i;;]path interval])      Starts a LISP program from a file, with the specified refresh rate (in ms)' +
 				'\n\t (peek [[i;;]pid])                 Shows the code for the process with the specified PID' +
 				'\n\t (kill [[i;;]pid])                 Kills the process with the specified PID' +
+			  '\n\t (performance [[i;;]pid])          Shows the performance of the process with the specified PID (in evals per sec)' +
 			'\nMiscellaneous commands:' +
-				'\n\t (js-apply [[i;;]func] [[[i;;]obj]] [[i;;]args]) Executes a JavaScript function' +
 				'\n\t (time [[[i;;]format]])            Displays the current time' + 
 				'\n\t (overlay [[i;;]txt x y id])       Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen' +
+				'\n\t (sort [[[i;;]lst]] [[[i;;]keyfunc]])     Sorts a list in ascending order, optionally using the specified key function' + 
+				'\n\t (newline)                  Returns a newline character' +
 				'\n\t (do-nothing)               Dummy command' +
 				'\n\t (help)                     Displays this help screen'
 			;

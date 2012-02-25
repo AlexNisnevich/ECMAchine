@@ -3,17 +3,16 @@ var fileSystemFrame = {
 	'__fileSystem': {
 		toString: function () { return '#<FileSystem>'},
 		'/': {
-			'README': {
+			'readme.txt': {
 				'type': 'file',
-				'contents': 'ECMAchine by Alex Nisnevich. Thanks to Jakub Jankiewicz for his jQuery Terminal plugin (distributed under LGPL).'
+				'contents': 'ECMAchine by Alex Nisnevich. Thanks to Jakub Jankiewicz for his jQuery Terminal plugin (distributed under LGPL).' +
+					'For more information check out the git repo at https://github.com/AlexNisnevich/ECMAchine'
 			},
-			'musings': {
+			'cleanup.s': {
 				'type': 'file',
-				'contents': 'Biggest hackathon is best hackathon.'
-			},
-			'twoplusthree': {
-				'type': 'file',
-				'contents': '(+ 2 3)'
+				'contents': "(map kill" +
+					        "\n     (filter (lambda (pid) (>= pid 0))" + 
+					        "\n           (map (lambda (proc) (car proc)) (processes))))"
 			},
 			'apps': {
 				'type': 'dir'
@@ -54,14 +53,7 @@ var fileSystemFrame = {
 			},
 			'memorymonitor.app': {
 				'type': 'file',
-				'contents': "(overlay (list 'Memory 'used: (/ (size '/) 1000) 'KB) -30 30 'memMon)"
-			},
-			'killeverything.app': {
-				'type': 'file',
-				'contents': "(begin" +
-						  "\n     (cd '/)" +
-						  "\n     (map rm (ls)))" +
-					      "\n     (map kill (map car (processes))))"
+				'contents': "(overlay (list 'Filesystem 'size: (/ (size '/) 1000) 'KB) -30 30 'memMon)"
 			}
 		},
 		'/startup': {
