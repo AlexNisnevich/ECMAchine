@@ -4,9 +4,24 @@ ECMAchine
 Introduction
 ------------
 
-ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It has a virtual filesystem that is accessed through Unix-like commands and a rudimentary process management system.
+ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It has a virtual filesystem that is accessed through Unix-like commands, as well as a rudimentary process management system.
 
 _Lots of examples will follow soon!_
+
+The REPL
+-----
+
+The File System
+-----
+
+Scripts
+-----
+
+Processes
+-----
+
+Overlays
+-----
 
 To Do
 -----

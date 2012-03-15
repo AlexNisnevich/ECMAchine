@@ -78,6 +78,8 @@ function evaluate(command, pid) {
  * Parses S-expression into a nested list
  */
 function parse(sexp) {
+	console.log("Parsing " + sexp);
+	
 	var isInt = function(value) {
 	  if ((parseFloat(value) == parseInt(value)) && !isNaN(value)){
 	      return true;
@@ -87,9 +89,9 @@ function parse(sexp) {
 	};
 	
 	var tokenize = function(sexp) {
-        var sexp = sexp.substring(1, sexp.length-1);
-        var openParens = 0;
-   		var tokens = [];
+    var sexp = sexp.substring(1, sexp.length-1);
+    var openParens = 0;
+ 		var tokens = [];
 		var currentToken = '';                                        
         for (var i = 0; i < sexp.length; i++) {
         	if (sexp[i] == ' ' && openParens == 0) {
@@ -127,6 +129,7 @@ function parse(sexp) {
 		for (var i = 0; i < tokens.length; i++) {
 			parsed_sexp.push(parse(tokens[i]));
 		}
+		console.log("Result: " + parsed_sexp);
 		return parsed_sexp;
 	} else if (isInt(sexp)) {
 		return parseInt(sexp);
