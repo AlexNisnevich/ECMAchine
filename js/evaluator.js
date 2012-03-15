@@ -357,7 +357,7 @@ function lispEval(exp, env) {
 }
 
 function lispApply(procedure, arguments) {
-	console.log('Applying: ' + procedure + ' to ' + arguments);
+	// console.log('Applying: ' + procedure + ' to ' + arguments);
 	
 	function isPrimitiveProcedure(procedure) {
 		return procedure.primitive !== undefined;
@@ -530,7 +530,7 @@ var primitiveProcedures = {
 	// ECMAchine general
 	'help': function (args) {
 		return 'The following LISP commands are supported as primitives:' + 
-				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, list, not, or, quote' + 
+				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, let, let*, list, not, or, quote' + 
 			'\nThe following LISP commands are among those defined in the standard library (located in /startup):' + 
 				'\n\t abs, cadr, filter, map, null?, sum' + 
 			'\nEnvironment commands:' +
@@ -675,6 +675,7 @@ var primitiveProcedures = {
 			'process': interval,
 			'code': contents,
 			'terminated': false,
+			'overlays': [],
 			
 			// Performance
 			'timeStarted': new Date().getTime(),
@@ -717,6 +718,7 @@ var primitiveProcedures = {
 		}
 		clearInterval(processes[args[0]].process);
 		processes[args[0]].terminated = true;
+		processes[args[0]].overlays.forEach(function (name) {$('#overlays #' + name).remove();}); // remove associated overlays
 		return new Array('Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated');
 	},
 	'overlay': function (args) {
@@ -738,6 +740,12 @@ var primitiveProcedures = {
 		} else {
 			overlay.css('bottom', -y);
 		}
+		
+		// if called from process, attach overlay name to PID
+		if (currentPID != null && processes[currentPID].overlays.indexOf(name) < 0) {
+			processes[currentPID].overlays.push(name);
+		}
+		
 		return;
 	}
 };

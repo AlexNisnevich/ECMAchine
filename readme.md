@@ -21,6 +21,7 @@ To Do
  - (accumulate), more higher-order functions?
  - wrappers for the AJAX primitives
 - Processes
+ - Processes (and scripts) should have their own environments rather than using global environment
  - Allow passing arguments to a process/script
  - Refactor processes into a new class (like Filesystem)
  - More accurate performance measurement (rather than just adding up all evals and dividing by total time)
@@ -28,7 +29,6 @@ To Do
      - For example, processes could continually adjust their interval in an attempt to reach ~1000 evals/sec systemwide 
      - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
 - Overlays
- - Tie overlays to processes and remove them when unused
  - Allow overlays to be draggable?
  - Figure out a solution to the overlay-getting-in-the-way-of-text problem
 - Programs
