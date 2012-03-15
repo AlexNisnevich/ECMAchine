@@ -108,7 +108,8 @@ var fileSystemFrame = {
 									"\n       (define temp (sum (map size (ls))))" + 
 									"\n       (cd '..)" +
 									"\n       temp))" +
-									"\n   (else 0)))"
+									"\n   (else 0)))" + 
+									"\n(define (kill-all) (map kill (filter (lambda (x) (>= x 0)) (map car (processes)))))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',

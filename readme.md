@@ -12,10 +12,7 @@ To Do
 -----
 
 - Language 
- - (let) constructs - also (let*) and (letrec)?
- - (define (proc args)) syntactic sugar
  - ; comments
- - Strings? Scheme has them, but don't quoted lists accomplish the same goals?
  - Primitives for AJAX requests
  - Newlines should be preserved when:
      - writing to files

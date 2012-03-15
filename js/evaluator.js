@@ -224,8 +224,10 @@ function lispEval(exp, env) {
 		return isTaggedList(exp, 'begin')
 	}
 	function isLambda(exp) {
-		return isTaggedList(exp, 'lambda') ||
-			isTaggedList(exp, 'λ');
+		return isTaggedList(exp, 'lambda') || isTaggedList(exp, 'λ');
+	}
+	function isLet(exp) {
+		return isTaggedList(exp, 'let') || isTaggedList(exp, 'let*') || isTaggedList(exp, 'letrec');
 	}
 	function isApplication(exp) {
 		return typeof exp == 'object' && exp.length >= 1;
@@ -246,7 +248,7 @@ function lispEval(exp, env) {
 		if (typeof exp == 'string') {
 			return parse(cdr(exp));
 		} else {
-			return cdr(exp);
+			return cdr(exp)[0];
 		}
 	}
 	function listOfValues(exps, env) {
@@ -257,7 +259,7 @@ function lispEval(exp, env) {
 	
 	// Evaluators
 	function evalAssignment(exp, env) {
-		setVariableValue(exp[1],
+		assignVariableValue(exp[1],
 			lispEval(exp[2], env),
 			env);
 	}
@@ -294,6 +296,23 @@ function lispEval(exp, env) {
 		}
 		return false;
 	}
+	function evalLet(exp, env) {
+		if (exp[0] == 'let') {
+			var vars = exp[1].map(function (x) {return x[0]});
+			var vals = exp[1].map(function (x) {return lispEval(x[1], env)});
+			return lispEval(exp[2], extendEnvironment(vars, vals, env));
+		} else if (exp[0] == 'let*') {
+			var newEnv = env;
+			for (var i = 0; i < exp[1].length; i++) {
+				var newVar = [exp[1][i][0]];
+				var newVal = [lispEval(exp[1][i][1], newEnv)];
+				newEnv = extendEnvironment(newVar, newVal, newEnv);
+			}
+			return lispEval(exp[2], newEnv);
+		} else if (exp[0] == 'letrec') {
+			throw "Eval Error: letrec control structure not yet implemented: " + exp; 
+		}
+	}
 	function makeProcedure(parameters, body, environment) {
 		var paramsList = []; for (var i = 0; i < arguments.length; i++) { paramsList.push(arguments[i]); } // a necessary evil
 
@@ -328,6 +347,8 @@ function lispEval(exp, env) {
 		return evalSequence(cdr(exp), env);
 	} else if (isLambda(exp)) {
 		return makeProcedure(exp[1], cdr(cdr(exp)), env);
+	} else if (isLet(exp)) {
+		return evalLet(exp, env);
 	} else if (isApplication(exp)) {
 		return lispApply(lispEval(exp[0], env), listOfValues(cdr(exp), env));
 	} else {
