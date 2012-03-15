@@ -51,3 +51,9 @@ To Do
      - Text editor
      - Web browser
  - This involves lots of challenges: e.g. how to get user input in a program
+- Sessions
+	- Use localStorage
+	- (restart) command
+	- User accounts?
+	- Some sort of import/export support?
+	 - If I could somehow hack up a server to allow SCP access to "ECMAchine", that would be incredibly cool
