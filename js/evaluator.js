@@ -262,9 +262,20 @@ function lispEval(exp, env) {
 			env);
 	}
 	function evalDefinition(exp, env) {
-		defineVariable(exp[1],
-			lispEval(exp[2], env),
-			env);
+		var name = exp[1]
+		var value = exp[2]
+		
+		if (name.isList) {
+			// (define (func a b) ...)
+			defineVariable(name[0],
+				makeProcedure(cdr(name), cdr(cdr(exp)), env),
+				env)
+		} else {
+			// (define var ...)
+			defineVariable(name,
+				lispEval(value, env),
+				env);
+		}
 	}
 	function evalIf(exp, env) {
 		if (lispEval(exp[1], env) == true) {

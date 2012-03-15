@@ -60,59 +60,59 @@ var fileSystemFrame = {
 			// Lisp functions
 			'utility.lsp': {
 				'type': 'file',
-				'contents': "(define cadr (lambda (x) (car (cdr x))))" +
+				'contents': "(define (cadr x) (car (cdr x)))" +
 									"\n(define else #t)" +
 						      "\n(define nil '())" +
-									"\n(define null? (lambda (lst) (= (length lst) 0)))" +
-									"\n(define intersperse (lambda (x y)" +
+									"\n(define (null? lst) (= (length lst) 0))" +
+									"\n(define (intersperse x y)" +
 									"\n    (if (= (length x) 1)" +
 									"\n        x" +
-									"\n        (cons (car x) (cons y (intersperse (cdr x) y))))))" +
-									"\n(define sum (lambda (lst)" +
+									"\n        (cons (car x) (cons y (intersperse (cdr x) y)))))" +
+									"\n(define (sum lst)" +
 									"\n    (if (null? lst)" +
 									"\n        0" + 
-									"\n        (+ (car lst) (sum (cdr lst))))))"
+									"\n        (+ (car lst) (sum (cdr lst)))))"
 			},
 			'mapreduce.lsp': {
 				'type': 'file',
-				'contents': "(define map (lambda (proc items)" +
+				'contents': "(define (map proc items)" +
 									"\n    (if (null? items)" +
 									"\n        nil" +
 									"\n        (cons (proc (car items))" +
-									"\n            (map proc (cdr items))))))" +
-									"\n(define filter (lambda (pred seq)" +
+									"\n            (map proc (cdr items)))))" +
+									"\n(define (filter pred seq)" +
 									"\n	  (cond ((null? seq) nil)" +
 									"\n	  			((pred (car seq))" +
 									"\n		  		 (cons (car seq)" +
 									"\n		  		 			 (filter pred (cdr seq))))" +
-									"\n  				(else (filter pred (cdr seq))))))"
+									"\n  				(else (filter pred (cdr seq)))))"
 			},
 			'math.lsp': {
 				'type': 'file',
-				'contents': "(define abs (lambda (x)" +
+				'contents': "(define (abs x)" +
 					        "\n    (cond ((> x 0) x)" +
-				      	  "\n        (#t (- x)))))" +
-					        "\n(define fact (lambda (x)" +
+				      	  "\n        (#t (- x))))" +
+					        "\n(define (fact x)" +
 					        "\n    (if (= x 1)" +
 					        "\n        1" +
-					        "\n        (* x (fact (- x 1))))))" +
-					        "\n(define math (lambda (func args)" +
-					        "\n    (js-apply (+ 'Math. func) args)))"
+					        "\n        (* x (fact (- x 1)))))" +
+					        "\n(define (math func args)" +
+					        "\n    (js-apply (+ 'Math. func) args))"
 			},
 			'files.lsp': {
 				'type': 'file',
-				'contents': "(define size (lambda (item)" +
+				'contents': "(define (size item)" +
 									"\n   (cond ((file? item) (length (read item)))" +
 									"\n   ((dir? item) (begin" +
 									"\n       (cd item)" +
 									"\n       (define temp (sum (map size (ls))))" + 
 									"\n       (cd '..)" +
 									"\n       temp))" +
-									"\n   (else 0))))"
+									"\n   (else 0)))"
 			},
 			'justforfun.lsp': {
 				'type': 'file',
-				'contents': "(define smile (lambda () ':-}))"
+				'contents': "(define (smile) ':-})"
 			},
 			
 			// Startup applications
