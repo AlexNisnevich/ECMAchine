@@ -670,6 +670,8 @@ var primitiveProcedures = {
 			var result = evaluate(contents, pid);
 			if (result !== undefined) {
 				terminalEcho(result);
+			} else {
+				terminalRefresh();
 			}
 		}, args[1]);
 		

@@ -13,7 +13,7 @@ The REPL
 
 ECMAchine supports the expected Scheme arithmetic commands, list-processing commands, and control structures:
 
-```scheme
+```
 ecmachine:/ guest$ (+ 1 2 3 4)
 10
 ecmachine:/ guest$ (- (/ 12 3) 2)
@@ -35,7 +35,7 @@ positive
 
 Of course there are closures, definitions, and binding constructs:
 
-```scheme
+```
 ecmachine:/ guest$ (lambda (arg) (+ arg 1))
 (λ (arg) (+ arg 1))
 ecmachine:/ guest$ ((lambda (arg) (+ arg 1)) 5)
@@ -54,7 +54,7 @@ ecmachine:/ guest$ (let ((x 2) (y 3))
 
 And we can do fun things like recursively computing Fibonacci numbers:
 
-```scheme
+```
 ecmachine:/ guest$ (define fib
 ..  (lambda (n)
 ..    (cond
@@ -71,7 +71,7 @@ Let's define two functions that we'll be using a lot later: `map` and `reduce`. 
 
 `map` takes another function and maps it to a list, executing it for every element of the list and combining the results into a new list:
 
-```scheme
+```
 ecmachine:/ guest$ (define (map proc items)
 ..  (if (null? items)
 ..    nil
@@ -85,7 +85,7 @@ ecmachine:/ guest$ (map length '(hello lisp))
 
 `filter` takes a predicate (that is, a function that returns a boolean value) and filters all the elements of a list that satisfy the predicate:
 
-```scheme
+```
 ecmachine:/ guest$ (define (filter pred seq)
 ..  (cond ((null? seq) nil)
 ..    ((pred (car seq))
@@ -103,7 +103,7 @@ Introspection
 
 You can view all of currently defined variables in the global environment with the `environment` command. 
 
-```scheme
+```
 ecmachine:/ guest$ (environment)
 (!= * + - / < <= = > >= __fileSystem abs and append cadr car cd cdr cons cp dir? do-nothing else environment exec fact file? filter help inspect-primitive intersperse js-apply kill kill-all length 
 list ls map math mkdir mv new newline nil not null? or overlay path peek perfmon.header perfmon.perfInfo performance processes read rm save size smile sort start sum time)
@@ -111,7 +111,7 @@ list ls map math mkdir mv new newline nil not null? or overlay path peek perfmon
 
 Let's take a look at the absolute value function `abs` in order to see the three levels of functions in ECMAchine:
 
-```scheme
+```
 ecmachine:/ guest$ abs
 (λ (x) (cond ((> x 0) x) (#t (- x))))
 ecmachine:/ guest$ -
@@ -134,7 +134,7 @@ When we type `-` into the evaluator we get `#<Function ->`, which means that `-`
 
 On the topic of introspection, we can even examine the contents of running processes with the `peek` command (more on processes later). For instance, here we're examining the source code of a currently-running clock application: 
 
-```scheme
+```
 ecmachine:/ guest$ (processes)
 ((-1 Terminal) (0 clock.app) (1 processmonitor.app) (2 memorymonitor.app))
 ecmachine:/ guest$ (peek 0)
@@ -146,7 +146,7 @@ The File System
 
 The file system is navigated using the `cd` and `ls` functions. The preferred method for concatenating file/directory names into paths is with the `path` function, as shown below:
 
-```scheme
+```
 ecmachine:/ guest$ (ls)
 (apps cleanup.s readme.txt startup usr)
 ecmachine:/ guest$ (ls 'apps)
@@ -167,7 +167,7 @@ ecmachine:/usr/usr2 guest$
 
 The `read` function is used to read the contents of a file, while `save` and `append` create a new file and append data to an existing file, respectively.
 
-```scheme
+```
 ecmachine:/ guest$ (ls)
 (apps cleanup.s readme.txt startup usr)
 ecmachine:/ guest$ (read 'readme.txt)
@@ -193,7 +193,7 @@ A script is an executable Lisp file. Scrips are created like any other file, and
 
 For example, `/cleanup.s` is a script that cleans the contents of the `usr` directory. Let's take a look at it and then run it.
 
-```scheme
+```
 ecmachine:/ guest$ (read 'cleanup.s)
 (rm (path '/ 'usr))
 (mkdir (path '/ 'usr))
@@ -213,7 +213,7 @@ Fairly straight-forward: `/cleanup.s` removes the `/usr` directory, clearing its
 
 _As an aside, could we delete the contents of a directory without deleting the entire directory? We could, but it would be a little more complicated:_
 
-```scheme
+```
 (map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
 ```
 
