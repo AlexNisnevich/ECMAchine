@@ -35,7 +35,7 @@ var fileSystemFrame = {
 			'analogclock.app': {
 				'type': 'file',
 				'contents': "(let* ((center-x -120) (center-y -160)" +
-									"\n       (pi (/ 314159265 100000000))" +
+									"\n       (pi 3.141592653589793)" +
 									"\n       (s-angle (* (/ pi 30) (+ (car (time '(s))) 15)))" +
 									"\n       (m-angle (* (/ pi 30) (+ (car (time '(m))) 15 (/ (+ (car (time '(s))) 15) 60))))" +
 									"\n       (h-angle (* (/ pi 6) (+ (car (time '(h))) 15 (/ (+ (car (time '(m))) 15) 60))))" +

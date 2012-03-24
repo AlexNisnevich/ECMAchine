@@ -133,6 +133,8 @@ function parse(sexp) {
 		return parsed_sexp;
 	} else if (isInt(sexp)) {
 		return parseInt(sexp);
+	} else if (!isNaN(sexp)) {
+		return parseFloat(sexp);
 	} else {
 		return sexp;
 	}
