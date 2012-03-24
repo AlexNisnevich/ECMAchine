@@ -34,13 +34,19 @@ var fileSystemFrame = {
 			},
 			'analogclock.app': {
 				'type': 'file',
-				'contents': "(let* ((center-x -90) (center-y -130)" +
+				'contents': "(let* ((center-x -120) (center-y -160)" +
 									"\n       (pi (/ 314159265 100000000))" +
-									"\n       (x-pos (- center-x (* 60 (math 'cos (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
-	      					"\n       (y-pos (- center-y (* 60 (math 'sin (* (/ pi 30) (+ (car (time '(s))) 15)))))))" +
+									"\n       (x-pos-s (- center-x (* 90 (math 'cos (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
+	      					"\n       (y-pos-s (- center-y (* 90 (math 'sin (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
+	     						"\n       (x-pos-m (- center-x (* 60 (math 'cos (* (/ pi 30) (+ (car (time '(m))) 15))))))" +
+	      					"\n       (y-pos-m (- center-y (* 60 (math 'sin (* (/ pi 30) (+ (car (time '(m))) 15))))))" +
+	     						"\n       (x-pos-h (- center-x (* 30 (math 'cos (* (/ pi 6) (+ (car (time '(h))) 15))))))" +
+	      					"\n       (y-pos-h (- center-y (* 30 (math 'sin (* (/ pi 6) (+ (car (time '(h))) 15)))))))" +
 	     						"\n      (begin " +
-	     						"\n         (overlay '(x) center-x center-y 'analogclockcenter)" +
-	     						"\n         (overlay '(o) x-pos y-pos 'analogclock)))"
+	     						"\n         (overlay '(O) center-x center-y 'analogclockcenter)" +
+	     						"\n         (overlay '(s) x-pos-s y-pos-s 'analogclockseconds)" +
+	     						"\n         (overlay '(m) x-pos-m y-pos-m 'analogclockminutes)" +
+	     						"\n         (overlay '(h) x-pos-h y-pos-h 'analogclockhours)))"
 			},
 			'virushunter.app': {
 				'type': 'file',
