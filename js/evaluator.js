@@ -671,7 +671,7 @@ var primitiveProcedures = {
 			if (result !== undefined) {
 				terminalEcho(result);
 			} else {
-				terminalRefresh();
+				terminalResize();
 			}
 		}, args[1]);
 		

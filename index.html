@@ -51,16 +51,22 @@
 	}
 	
 	/*
-	 * Refresh terminal, resizing it if necessary to avoid overlap with overlays
+	 * Resize terminal to avoid overlap with overlays
 	 */
-	function terminalRefresh() {
+	function terminalResize() {
 		if ($('.overlayRight').length == 0) {
 			var newWidth = $(document).width() - 20;
 		} else {
 			var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
 		}
 		terminal.resize(newWidth, terminal.height());
-		
+	}
+	
+	/*
+	 * Refresh terminal: resize + scroll to bottom
+	 */
+	function terminalRefresh() {
+		terminalResize();
 		$(document).scrollTop($(document).height());
 	}
   </script>
