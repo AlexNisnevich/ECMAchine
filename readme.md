@@ -167,7 +167,7 @@ ecmachine:/usr/usr2 guest$
 
 The `read` function is used to read the contents of a file, while `save` and `append` create a new file and append data to an existing file, respectively.
 
-```
+```scheme
 ecmachine:/ guest$ (ls)
 (apps cleanup.s readme.txt startup usr)
 ecmachine:/ guest$ (read 'readme.txt)
