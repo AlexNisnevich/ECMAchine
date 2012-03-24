@@ -45,11 +45,24 @@
 	function terminalEcho(str) {
 		str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
 		terminal.echo(str);
+		terminalRefresh();
+	}
+	
+	/*
+	 * Refresh terminal, resizing it if necessary to avoid overlap with overlays
+	 */
+	function terminalRefresh() {
+		if ($('#overlays').children().length == 0) {
+			var newWidth = $(document).width() - 20;
+		} else {
+			var newWidth = $('#overlays').children().map(function (i, x) {return x.offsetLeft;}).sort()[0] - 20;
+		}
+		terminal.resize(newWidth, terminal.height());
+		
 		$(document).scrollTop($(document).height());
 	}
-    </script>
-    <script type="text/javascript">
-
+  </script>
+  <script type="text/javascript">
 	  var _gaq = _gaq || [];
  	 _gaq.push(['_setAccount', 'UA-345959-10']);
  	 _gaq.push(['_trackPageview']);

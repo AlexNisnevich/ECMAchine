@@ -78,7 +78,7 @@ function evaluate(command, pid) {
  * Parses S-expression into a nested list
  */
 function parse(sexp) {
-	console.log("Parsing " + sexp);
+	// console.log("Parsing " + sexp);
 	
 	var isInt = function(value) {
 	  if ((parseFloat(value) == parseInt(value)) && !isNaN(value)){
@@ -129,7 +129,6 @@ function parse(sexp) {
 		for (var i = 0; i < tokens.length; i++) {
 			parsed_sexp.push(parse(tokens[i]));
 		}
-		console.log("Result: " + parsed_sexp);
 		return parsed_sexp;
 	} else if (isInt(sexp)) {
 		return parseInt(sexp);

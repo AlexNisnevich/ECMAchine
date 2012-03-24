@@ -240,7 +240,7 @@ What's Next?
 Here are some things I'd like to see in ECMAchine:
 
 - Language 
- - ; comments
+ - Comments
  - Primitives for AJAX requests
  - Newlines should be preserved when:
      - writing to files
@@ -258,7 +258,6 @@ Here are some things I'd like to see in ECMAchine:
      - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
 - Overlays
  - Allow overlays to be draggable?
- - Figure out a solution to the overlay-getting-in-the-way-of-text problem
 - Programs
  - It would be very cool to actually get some more involved programs working: e.g.
      - Text editor
