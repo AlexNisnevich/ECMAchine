@@ -53,7 +53,7 @@ var fileSystemFrame = {
 			},
 			'memorymonitor.app': {
 				'type': 'file',
-				'contents': "(overlay (list 'Filesystem 'size: (/ (size '/) 1000) 'KB) -30 30 'memMon)"
+				'contents': "(overlay (list 'Filesystem 'size: (/ (size '..) 1000) 'KB) -30 30 'memMon)"
 			}
 		},
 		'/startup': {
@@ -102,13 +102,9 @@ var fileSystemFrame = {
 			'files.lsp': {
 				'type': 'file',
 				'contents': "(define (size item)" +
-									"\n   (cond ((file? item) (length (read item)))" +
-									"\n   ((dir? item) (begin" +
-									"\n       (cd item)" +
-									"\n       (define temp (sum (map size (ls))))" + 
-									"\n       (cd '..)" +
-									"\n       temp))" +
-									"\n   (else 0)))" + 
+    							"\n		(cond ((file? item) (length (read item)))" +
+         				 	"\n				  ((dir? item) (sum (map size (map (lambda (x) (path item x)) (ls item)))))" +
+         		 			"\n					(else 0)))" + 
 									"\n(define (kill-all) (map kill (filter (lambda (x) (>= x 0)) (map car (processes)))))"
 			},
 			'justforfun.lsp': {
