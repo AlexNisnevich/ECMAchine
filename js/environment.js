@@ -32,6 +32,16 @@ var fileSystemFrame = {
 				'type': 'file',
 				'contents': "(overlay (time) -30 -70 'unixclock)"
 			},
+			'analogclock.app': {
+				'type': 'file',
+				'contents': "(let* ((center-x -90) (center-y -130)" +
+									"\n       (pi (/ 314159265 100000000))" +
+									"\n       (x-pos (- center-x (* 60 (math 'cos (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
+	      					"\n       (y-pos (- center-y (* 60 (math 'sin (* (/ pi 30) (+ (car (time '(s))) 15)))))))" +
+	     						"\n      (begin " +
+	     						"\n         (overlay '(x) center-x center-y 'analogclockcenter)" +
+	     						"\n         (overlay '(o) x-pos y-pos 'analogclock)))"
+			},
 			'virushunter.app': {
 				'type': 'file',
 				'contents': "(if (file? (path '/ 'virus))" +
@@ -42,13 +52,13 @@ var fileSystemFrame = {
 			},
 			'processmonitor.app': {
 				'type': 'file',
-				'contents': "(define perfmon.perfInfo (sort" +
-								"\n    (map " +
-					      "\n        (lambda (proc) (list (cadr proc) (performance (car proc))))" +
-					      "\n        (processes))" +
-					      "\n    (lambda (proc) (- (cadr proc)))))" +
-					      "\n(define perfmon.header (list 'Processes '{evals/sec}))" +
-					      "\n(overlay (intersperse (cons perfmon.header perfmon.perfInfo) (newline)) -30 70 'procMon)"
+				'contents': "(let ((header (list 'Processes '{evals/sec})) " +
+								"\n				 (perfInfo (sort" +
+								"\n						(map " +
+						    "\n       			(lambda (proc) (list (cadr proc) (performance (car proc))))" +
+						    "\n       			(processes))" +
+						    "\n   				(lambda (proc) (- (cadr proc))))))" +
+					      "\n       (overlay (intersperse (cons header perfInfo) (newline)) -30 70 'procMon))"
 			},
 			'memorymonitor.app': {
 				'type': 'file',
