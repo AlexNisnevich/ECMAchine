@@ -53,7 +53,7 @@ var fileSystemFrame = {
 			},
 			'memorymonitor.app': {
 				'type': 'file',
-				'contents': "(overlay (list 'Filesystem 'size: (/ (size '..) 1000) 'KB) -30 30 'memMon)"
+				'contents': "(overlay (list 'Filesystem 'size: (/ (size '/) 1000) 'KB) -30 30 'memMon)"
 			}
 		},
 		'/startup': {

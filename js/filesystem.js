@@ -11,12 +11,13 @@ var Filesystem = {
 	 * Gets new path (e.g. for 'cd' command)
 	 */
 	calculatePath: function(dir) {
-		if (dir == '') {
+		if (dir == '') { // current dir
 			return this.currentDir;
-		} if (dir == '/') {
+		} else if (dir == '/') { // top-level dir
 			return '/';
-		} else {
-			if (dir == "'") { dir = dir.slice(1); } // remove initial quote if exists 
+		} else if (dir[0] == '/') { // calculate from top-level dir
+			return dir;
+		} else { // calculate from current dir
 			var pathComponents = this.currentDir.split('/');
 			var dirComponents = dir.split('/');
 			dirComponents.forEach(function (comp) {
@@ -44,7 +45,12 @@ var Filesystem = {
 	 */
 	getFolderFromPath: function(path) {
 		var pathSplit = path.split('/');
-		return this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
+		if (path[0] == '/') { // top-level dir
+			var folder = pathSplit.slice(0, pathSplit.length - 1).join('/');
+			return (folder == '')? '/' : folder;
+		} else {
+			return this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
+		}
 	},
 	
 	/*
