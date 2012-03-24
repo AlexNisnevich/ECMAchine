@@ -36,17 +36,20 @@ var fileSystemFrame = {
 				'type': 'file',
 				'contents': "(let* ((center-x -120) (center-y -160)" +
 									"\n       (pi (/ 314159265 100000000))" +
-									"\n       (x-pos-s (- center-x (* 90 (math 'cos (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
-	      					"\n       (y-pos-s (- center-y (* 90 (math 'sin (* (/ pi 30) (+ (car (time '(s))) 15))))))" +
-	     						"\n       (x-pos-m (- center-x (* 60 (math 'cos (* (/ pi 30) (+ (car (time '(m))) 15))))))" +
-	      					"\n       (y-pos-m (- center-y (* 60 (math 'sin (* (/ pi 30) (+ (car (time '(m))) 15))))))" +
-	     						"\n       (x-pos-h (- center-x (* 30 (math 'cos (* (/ pi 6) (+ (car (time '(h))) 15))))))" +
-	      					"\n       (y-pos-h (- center-y (* 30 (math 'sin (* (/ pi 6) (+ (car (time '(h))) 15)))))))" +
+									"\n       (s-angle (* (/ pi 30) (+ (car (time '(s))) 15)))" +
+									"\n       (m-angle (* (/ pi 30) (+ (car (time '(m))) 15 (/ (+ (car (time '(s))) 15) 60))))" +
+									"\n       (h-angle (* (/ pi 6) (+ (car (time '(h))) 15 (/ (+ (car (time '(m))) 15) 60))))" +
+									"\n       (x-pos-s (- center-x (* 90 (math 'cos s-angle))))" +
+	      					"\n       (y-pos-s (- center-y (* 90 (math 'sin s-angle))))" +
+	     						"\n       (x-pos-m (- center-x (* 60 (math 'cos m-angle))))" +
+	      					"\n       (y-pos-m (- center-y (* 60 (math 'sin m-angle))))" +
+	     						"\n       (x-pos-h (- center-x (* 30 (math 'cos h-angle))))" +
+	      					"\n       (y-pos-h (- center-y (* 30 (math 'sin h-angle)))))" +
 	     						"\n      (begin " +
 	     						"\n         (overlay '(O) center-x center-y 'analogclockcenter)" +
-	     						"\n         (overlay '(s) x-pos-s y-pos-s 'analogclockseconds)" +
+	     						"\n         (overlay '(h) x-pos-h y-pos-h 'analogclockhours)" +
 	     						"\n         (overlay '(m) x-pos-m y-pos-m 'analogclockminutes)" +
-	     						"\n         (overlay '(h) x-pos-h y-pos-h 'analogclockhours)))"
+	     						"\n         (overlay '(s) x-pos-s y-pos-s 'analogclockseconds)))"
 			},
 			'virushunter.app': {
 				'type': 'file',
@@ -128,9 +131,10 @@ var fileSystemFrame = {
 			},
 			
 			// Startup applications
-			'clock.lnk': {
+			'clocks.lnk': {
 				'type': 'file',
-				'contents': "(start (path '/ 'apps 'clock.app) 1000)"
+				'contents': "(start (path '/ 'apps 'clock.app) 1000)" +
+									"\n(start (path '/ 'apps 'analogclock.app) 1000)"
 			},
 			'pmon.lnk': {
 				'type': 'file',
