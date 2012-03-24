@@ -10,9 +10,8 @@ var fileSystemFrame = {
 			},
 			'cleanup.s': {
 				'type': 'file',
-				'contents': "(map kill" +
-					        "\n     (filter (lambda (pid) (>= pid 0))" + 
-					        "\n           (map (lambda (proc) (car proc)) (processes))))"
+				'contents': "(rm (path '/ 'usr))" +
+									"\n(mkdir (path '/ 'usr))"
 			},
 			'apps': {
 				'type': 'dir'
