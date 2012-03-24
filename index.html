@@ -19,8 +19,10 @@
 	        if (command !== '') {
         		var result = evaluate(command);
         		if (result !== undefined) {
-	                terminalEcho(String(result));
-	            }
+              terminalEcho(String(result));
+            } else {
+           		terminalRefresh();
+            }
 	        } else {
 	           terminalEcho('');
 	        }
@@ -52,10 +54,10 @@
 	 * Refresh terminal, resizing it if necessary to avoid overlap with overlays
 	 */
 	function terminalRefresh() {
-		if ($('#overlays').children().length == 0) {
+		if ($('.overlayRight').length == 0) {
 			var newWidth = $(document).width() - 20;
 		} else {
-			var newWidth = $('#overlays').children().map(function (i, x) {return x.offsetLeft;}).sort()[0] - 20;
+			var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
 		}
 		terminal.resize(newWidth, terminal.height());
 		

@@ -735,8 +735,10 @@ var primitiveProcedures = {
 		var overlay = $('<div>').attr('id', name).appendTo('#overlays');
 		overlay.html(txt);
 		if (x >= 0) {
+			overlay.addClass('overlayLeft');
 			overlay.css('left', x);
 		} else {
+			overlay.addClass('overlayRight');
 			overlay.css('right', -x);
 		}
 		if (y >= 0) {
