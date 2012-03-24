@@ -66,44 +66,6 @@ ecmachine:/ guest$ (fib 10)
 
 But we already know about Lisp. What makes ECMAchine different?
 
-Higher-Order Functions
------
-
-Let's define two functions that we'll be using a lot later: `map` and `reduce`. (In fact, these functions are so important that in ECMAchine, they're both defined in `/startup/mapreduce.lsp` and loaded at startup.)
-
-#### Map
-
-`map` takes another function and maps it to a list, executing it for every element of the list and combining the results into a new list:
-
-```
-ecmachine:/ guest$ (define (map proc items)
-..  (if (null? items)
-..    nil
-..    (cons (proc (car items))
-..      (map proc (cdr items)))))
-ecmachine:/ guest$ (map abs '(1 -3 5 -6 0))
-(1 3 5 6 0)
-ecmachine:/ guest$ (map length '(hello lisp))
-(5 4)
-```
-
-#### Filter
-
-`filter` takes a predicate (that is, a function that returns a boolean value) and filters all the elements of a list that satisfy the predicate:
-
-```
-ecmachine:/ guest$ (define (filter pred seq)
-..  (cond ((null? seq) nil)
-..    ((pred (car seq))
-..     (cons (car seq)
-..       (filter pred (cdr seq))))
-..    (#t (filter pred (cdr seq)))))
-ecmachine:/ guest$ (filter (lambda (x) (> x 5)) '(3 7 2 0 9 15))
-(7 9 15)
-ecmachine:/ guest$ (filter (lambda (x) (= (length x) 3)) '(the blue cat))
-(the cat)
-```
-
 Introspection
 -----
 
@@ -198,6 +160,44 @@ ecmachine:/ guest$ (read 'blah.txt)
 
 You can move, copy, and delete files and directories with the `mv`, `cp`, and `rm` commands, respectively.
 
+Higher-Order Functions
+-----
+
+Before we continue into scripts and processes, let's define two functions that we'll be using a lot later: `map` and `filter`. (In fact, these functions are so important that in ECMAchine, they're both defined in `/startup/mapreduce.lsp` and loaded at startup.)
+
+#### Map
+
+`map` takes another function and maps it to a list, executing it for every element of the list and combining the results into a new list:
+
+```
+ecmachine:/ guest$ (define (map proc items)
+..  (if (null? items)
+..    nil
+..    (cons (proc (car items))
+..      (map proc (cdr items)))))
+ecmachine:/ guest$ (map abs '(1 -3 5 -6 0))
+(1 3 5 6 0)
+ecmachine:/ guest$ (map length '(hello lisp))
+(5 4)
+```
+
+#### Filter
+
+`filter` takes a predicate (that is, a function that returns a boolean value) and filters all the elements of a list that satisfy the predicate:
+
+```
+ecmachine:/ guest$ (define (filter pred seq)
+..  (cond ((null? seq) nil)
+..    ((pred (car seq))
+..     (cons (car seq)
+..       (filter pred (cdr seq))))
+..    (#t (filter pred (cdr seq)))))
+ecmachine:/ guest$ (filter (lambda (x) (> x 5)) '(3 7 2 0 9 15))
+(7 9 15)
+ecmachine:/ guest$ (filter (lambda (x) (= (length x) 3)) '(the blue cat))
+(the cat)
+```
+
 A Few More Functions
 -----
 
@@ -242,7 +242,7 @@ _As an aside, could we delete the contents of a directory without deleting the e
 (map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
 ```
 
-##### Special Types of Scripts
+#### Special Types of Scripts
 
 There are two more important types of scripts, that have their own extensions by convention.
 
