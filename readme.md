@@ -64,10 +64,14 @@ ecmachine:/ guest$ (fib 10)
 89
 ```
 
+But we already know about Lisp. What makes ECMAchine different?
+
 Higher-Order Functions
 -----
 
 Let's define two functions that we'll be using a lot later: `map` and `reduce`. (In fact, these functions are so important that in ECMAchine, they're both defined in `/startup/mapreduce.lsp` and loaded at startup.)
+
+#### Map
 
 `map` takes another function and maps it to a list, executing it for every element of the list and combining the results into a new list:
 
@@ -82,6 +86,8 @@ ecmachine:/ guest$ (map abs '(1 -3 5 -6 0))
 ecmachine:/ guest$ (map length '(hello lisp))
 (5 4)
 ```
+
+#### Filter
 
 `filter` takes a predicate (that is, a function that returns a boolean value) and filters all the elements of a list that satisfy the predicate:
 
@@ -213,7 +219,7 @@ Fairly straight-forward: `/cleanup.s` removes the `/usr` directory, clearing its
 
 _As an aside, could we delete the contents of a directory without deleting the entire directory? We could, but it would be a little more complicated:_
 
-```
+```lisp
 (map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
 ```
 
@@ -229,10 +235,34 @@ Overlays
 
 
 
+A Few More Functions
+-----
+
+We're almost at the fun part of the tutorial, but before we get there, I should mention a few more important functions that are included as primitives in ECMAchine.
+
+#### (time)
+
+#### (apply-js)
+
+#### (sort)
+
 Recipes
 -----
 
+So, now that we have all of these tools, what can we do with them? Here are some functions and processes that I've come up with. Many of them are included in ECMAchine as scripts, processes, or library functions.
 
+#### File System Recipes
+
+Let's start with file and folder manipulation. Here's one that was already mentioned above: a function to delete all of the elements of a directory. 
+
+```lisp
+(define (clean dir)
+	(map rm 
+	     (map (lambda (x) (path dir x)) 
+	          (ls dir))))
+```
+
+Why is the `(lambda (x) (path dir x))` mapping necessary? Let's say that we want to delete the contents of subfolder `/usr` and `(ls 'usr)` gives `(a b)`. We really want to execute `(rm (path 'usr 'a)` and `(rm (path 'usr 'b)`, rather than `(rm 'a)` and `(rm 'b)`.
 
 What's Next?
 -----
