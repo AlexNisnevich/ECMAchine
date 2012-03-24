@@ -6,6 +6,8 @@ Introduction
 
 ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It has a virtual filesystem that is accessed through Unix-like commands, as well as a rudimentary process management system.
 
+This tutorial will walk you through the file and process management features of ECMAchine, and is aimed at people with at least a little bit of experience with Scheme or another Lisp dialect. 
+
 The REPL
 -----
 
@@ -142,17 +144,100 @@ ecmachine:/ guest$ (peek 0)
 The File System
 -----
 
+The file system is navigated using the `cd` and `ls` functions. The preferred method for concatenating file/directory names into paths is with the `path` function, as shown below:
+
+```scheme
+ecmachine:/ guest$ (ls)
+(apps cleanup.s readme.txt startup usr)
+ecmachine:/ guest$ (ls 'apps)
+(clock.app memorymonitor.app processmonitor.app unixclock.app virushunter.app)
+ecmachine:/ guest$ (cd 'usr)
+ecmachine:/usr guest$ (ls)
+()
+ecmachine:/usr guest$ (mkdir 'usr2)
+(Directory /usr/usr2 created)
+ecmachine:/usr guest$ (ls)
+(usr2)
+ecmachine:/usr guest$ (cd '..)
+ecmachine:/ guest$ (path 'usr 'usr2)
+usr/usr2
+ecmachine:/ guest$ (cd (path 'usr 'usr2))
+ecmachine:/usr/usr2 guest$ 
+```
+
+The `read` function is used to read the contents of a file, while `save` and `append` create a new file and append data to an existing file, respectively.
+
+```
+ecmachine:/ guest$ (ls)
+(apps cleanup.s readme.txt startup usr)
+ecmachine:/ guest$ (read 'readme.txt)
+ECMAchine by Alex Nisnevich. Thanks to Jakub Jankiewicz for his jQuery Terminal plugin (distributed under LGPL).For more information check out the git repo at https://github.com/AlexNisnevich/ECM
+Achine
+ecmachine:/ guest$ (save 'blah.txt '(I am using ECMachine!))
+(Saved file /blah.txt)
+ecmachine:/ guest$ (read 'blah.txt)
+(I am using ECMachine!)
+ecmachine:/ guest$ (append 'blah.txt '(Hooray!))
+(Updated file /blah.txt)
+ecmachine:/ guest$ (read 'blah.txt)
+(I am using ECMachine!)
+(Hooray!)
+```
+
+You can move, copy, and delete files and directories with the `mv`, `cp`, and `rm` commands.
+
 Scripts
 -----
+
+A script is an executable Lisp file. Scrips are created like any other file, and by convention end in the file extension `.s`. The `exec` command is used to execute scripts.
+
+For example, `/cleanup.s` is a script that cleans the contents of the `usr` directory. Let's take a look at it and then run it.
+
+```scheme
+ecmachine:/ guest$ (read 'cleanup.s)
+(rm (path '/ 'usr))
+(mkdir (path '/ 'usr))
+ecmachine:/ guest$ (ls 'usr)
+()
+ecmachine:/ guest$ (save (path 'usr 'myFile) 'blahblahblah)
+(Saved file /usr/myFile)
+ecmachine:/ guest$ (ls 'usr)
+(myFile)
+ecmachine:/ guest$ (exec 'cleanup.s)
+(Directory /usr created)
+ecmachine:/ guest$ (ls 'usr)
+()
+```
+
+Fairly straight-forward: `/cleanup.s` removes the `/usr` directory, clearing its contents, and then recreates the directory.
+
+_As an aside, could we delete the contents of a directory without deleting the entire directory? We could, but it would be a little more complicated:_
+
+```scheme
+(map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
+```
+
+Now, scripts are cool, but wouldn't it be cooler if we could somehow run a script continuously in the background? This is where processes come in.
 
 Processes
 -----
 
+
+
 Overlays
 -----
 
-To Do
+
+
+Recipes
 -----
+
+
+
+What's Next?
+-----
+
+Here are some things I'd like to see in ECMAchine:
 
 - Language 
  - ; comments
