@@ -505,7 +505,7 @@ var primitiveProcedures = {
 		// Is length a primitive? It COULD be implemented recursively as
 		// (λ (x) (if (null? x) 0 (+ 1 (length (cdr x)))))
 		// but that requires null? to be defined (I choose to define null? in terms of length)
-		// Paul Graham included length as a primitive, so I'll follow his precedent.
+		// John McCarthy included length as a primitive, so I'll follow his precedent.
 		return args[0].length;
 	},
 	

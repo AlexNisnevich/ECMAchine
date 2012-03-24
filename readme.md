@@ -150,6 +150,8 @@ ecmachine:/ guest$ (peek 0)
 The File System
 -----
 
+#### Folders
+
 The file system is navigated using the `cd` and `ls` functions. The preferred method for concatenating file/directory names into paths is with the `path` function, as shown below:
 
 ```
@@ -171,6 +173,8 @@ ecmachine:/ guest$ (cd (path 'usr 'usr2))
 ecmachine:/usr/usr2 guest$ 
 ```
 
+#### Files
+
 The `read` function is used to read the contents of a file, while `save` and `append` create a new file and append data to an existing file, respectively.
 
 ```
@@ -190,12 +194,27 @@ ecmachine:/ guest$ (read 'blah.txt)
 (Hooray!)
 ```
 
-You can move, copy, and delete files and directories with the `mv`, `cp`, and `rm` commands.
+#### Manipulation
+
+You can move, copy, and delete files and directories with the `mv`, `cp`, and `rm` commands, respectively.
+
+A Few More Functions
+-----
+
+We're almost at the fun part of the tutorial, but before we get there, I should briefly mention a few more important functions that are included as primitives in ECMAchine.
+
+#### (length)
+
+#### (sort)
+
+#### (time)
+
+#### (apply-js)
 
 Scripts
 -----
 
-A script is an executable Lisp file. Scrips are created like any other file, and by convention end in the file extension `.s`. The `exec` command is used to execute scripts.
+A **script** is an executable Lisp file. Scrips are created like any other file, and by convention end in the file extension `.s`. The `exec` command is used to execute scripts.
 
 For example, `/cleanup.s` is a script that cleans the contents of the `usr` directory. Let's take a look at it and then run it.
 
@@ -223,28 +242,29 @@ _As an aside, could we delete the contents of a directory without deleting the e
 (map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
 ```
 
+##### Special Types of Scripts
+
+There are two more important types of scripts, that have their own extensions by convention.
+
+- **Libraries** (by convention ending in the extension `.lsp`) consist only of function definitions - for example, `map` and `filter` are defined in the library file `/startup/mapreduce.lsp`. 
+- **Shortcuts** (by convention ending in the extension `.lnk`) consist only of `exec` or `start` function calls to other scripts or applications (more on those later).
+
+Why would we need shortcuts? One big reason has to do with the `/startup` directory: when ECMAsystem launches, every script located within the `/startup` directory is executed. Generally, the startup directory is expected to consist of only libraries and shortcuts.
+
 Now, scripts are cool, but wouldn't it be cooler if we could somehow run a script continuously in the background? This is where processes come in.
 
 Processes
 -----
 
+A **process** is created when a script is called with the `start` function. `(start path interval)` begins running the script at _path_ with a refresh rate of _interval_ milliseconds. By convention, scripts that are meant to be run as processes are called **applications** and end in the file extension `.app`.
 
+#### Overlays
 
-Overlays
------
+#### Example: A Simple Clock
 
+#### Process Management
 
-
-A Few More Functions
------
-
-We're almost at the fun part of the tutorial, but before we get there, I should mention a few more important functions that are included as primitives in ECMAchine.
-
-#### (time)
-
-#### (apply-js)
-
-#### (sort)
+#### Process Performance
 
 Recipes
 -----
@@ -252,6 +272,8 @@ Recipes
 So, now that we have all of these tools, what can we do with them? Here are some functions and processes that I've come up with. Many of them are included in ECMAchine as scripts, processes, or library functions.
 
 #### File System Recipes
+
+##### Directory Cleanup
 
 Let's start with file and folder manipulation. Here's one that was already mentioned above: a function to delete all of the elements of a directory. 
 
@@ -262,7 +284,123 @@ Let's start with file and folder manipulation. Here's one that was already menti
 	          (ls dir))))
 ```
 
-Why is the `(lambda (x) (path dir x))` mapping necessary? Let's say that we want to delete the contents of subfolder `/usr` and `(ls 'usr)` gives `(a b)`. We really want to execute `(rm (path 'usr 'a)` and `(rm (path 'usr 'b)`, rather than `(rm 'a)` and `(rm 'b)`.
+Why is the `(lambda (x) (path dir x))` mapping necessary? Let's say that we want to delete the contents of subfolder `/usr` and `(ls 'usr)` gives `(a b)`. We really want to execute `(rm (path 'usr 'a))` and `(rm (path 'usr 'b))`, rather than `(rm 'a)` and `(rm 'b)`. In other words, this mapping is used to preserve filepaths when traversing directory contents.
+
+##### File/Folder Size
+
+Now let's try a more complicated example: calculating the size of a file or directory.
+
+Suppose that we're trying to find the size of `item`. If `item` is a file, then this is pretty easy - we can just read `item` and take its length. If `item` is a directory, then we need to take the sum of the sizes of its contents, using a similar technique to what we used above. Writing a function to sum a list is straightforward:
+
+```lisp
+(define (sum lst)
+	(if (null? lst)
+	    0
+	    (+ (car (lst)
+	       (sum (cdr lst))))))
+```
+
+And now we're ready to write `size`:
+
+```lisp
+(define (size item)
+        (cond ((file? item) (length (read item)))
+              ((dir? item) 
+               (sum (map size 
+               		 (map (lambda (x) (path item x)) 
+               		      (ls item)))))
+              (#t 0)))
+```
+
+Note the many similarities between `clean` and `size`: the existence of higher-order functions like `map` allows us to write different file manipulation functions in a similar style.
+
+Now that we have `size` written, we can write a simple application that periodically calculates the size of the entire filesystem and displays it. Calculating the filesystem size is simply done with `(size '/)`. This application is saved under `/apps/memoryMonitor.app` and is loaded at startup:
+
+```lisp
+(overlay (list 'Filesystem 'size: (/ (size '/) 1000) 'KB) -30 30 'memMon)
+```
+
+##### File Search
+
+Now let's try using a similar structure to write a `search` function that searches for a file with a given name recursively within a directory, returning the file's path if it is found and `#f` otherwise.
+
+As a first step, we need to be able to obtain a filename from a file path - there's no primitive for this, but we can write a quick one-liner to do this: since paths are represented as `/dir1/dir2/file`, calling `split('/')` on a path (via `js-apply`) results in `(dir1 dir2 file)`, and we can take the `car` of the reverse (`reverse` is implemented in terms of `append` in `/startup/utility.lsp`) of this list to get the filename:
+
+```lisp
+(define (get-name path)
+	(car (reverse (js-apply 'split path '/))))
+```
+
+Now that we have this out of the way, suppose we're given a path and we're trying to find a file within that path. If the path is pointing to a file, we just need to compare names to see if we've found what we're looking for. If the path is pointing to a directory, it gets trickier. Let's take all of the contents of the directory and run the same search on them, then filter out all of the false results. If there is anything left, then we have found our file; if not, then the directory does not contain that file. Our final function:
+
+```lisp
+(define (search dir name)
+	(cond ((file? dir) 
+	       (if (= (get-name dir) name)
+	       	   dir
+	       	   #f))
+	      ((dir? dir)
+	       (let ((results
+	              (filter (lambda (x) (!= x #f))
+			       (map (lambda (x) (search x name))
+			             (map (lambda (x) (path dir x))
+			                  (ls dir))))))
+                    (if (> (length results) 0)
+                        (car results)
+                        #f)))
+	      (#t #f)))
+```
+
+Alternatively, we can search for both files and folders with just a slight modification:
+
+```lisp
+(define (search dir name)
+	(cond ((= (get-name dir) name) dir)
+	      ((dir? dir)
+	       (let ((results
+	              (filter (lambda (x) (!= x #f))
+			       (map (lambda (x) (search x name))
+			             (map (lambda (x) (path dir x))
+			                  (ls dir))))))
+                    (if (> (length results) 0)
+                        (car results)
+                        #f)))
+	      (#t #f)))
+```
+
+Let's see it in action!
+
+```
+ecmachine:/ guest$ (define (search dir name)
+..    (cond ((file? dir) 
+..           (if (= (get-name dir) name)
+..                  dir
+..                  #f))
+..          ((dir? dir)
+..           (let ((results
+..                  (filter (lambda (x) (!= x #f))
+..                   (map (lambda (x) (search x name))
+..                         (map (lambda (x) (path dir x))
+..                              (ls dir))))))
+..                    (if (> (length results) 0)
+..                        (car results)
+..                        #f)))
+..          (#t #f)))
+ecmachine:/ guest$ (search '/ 'mapreduce.lsp)
+/startup/mapreduce.lsp
+ecmachine:/ guest$ (search 'apps 'mapreduce.lsp)
+#f
+```
+
+#### Process Manipulation Recipes
+
+##### Process Cleanup
+
+##### A Simple Task Manager
+
+#### Miscellaneous Recipes
+
+##### Analog Clock
 
 What's Next?
 -----
@@ -276,7 +414,7 @@ Here are some things I'd like to see in ECMAchine:
      - writing to files
      - displaying function contents
 - Library
- - (accumulate), more higher-order functions?
+ - (accumulate), other higher-order functions?
  - wrappers for the AJAX primitives
 - Processes
  - Processes (and scripts) should have their own environments rather than using global environment
@@ -286,7 +424,6 @@ Here are some things I'd like to see in ECMAchine:
  - Bonus: come up with a simple time-sharing system that works in JavaScript? 
      - For example, processes could continually adjust their interval in an attempt to reach ~1000 evals/sec systemwide 
      - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
-- Overlays
  - Allow overlays to be draggable?
 - Programs
  - It would be very cool to actually get some more involved programs working: e.g.
