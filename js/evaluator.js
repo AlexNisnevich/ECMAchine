@@ -550,7 +550,7 @@ var primitiveProcedures = {
 				'\n\t (mkdir [[i;;]name])               Creates a new directory' +
 				'\n\t (new [[i;;]path])                 Creates a new file' +
 				'\n\t (save [[i;;]path text])           Saves text to a file, replacing current contents if the file already exists' +
-				'\n\t (append [[i;;]path text])         Appends text to an existing file' +
+				'\n\t (appnd [[i;;]path text])          Appends text to an existing file' +
 				'\n\t (mv [[i;;]oldpath newpath])       Moves a file or directory to a new location' +
 				'\n\t (cp [[i;;]oldpath newpath])       Copies a file or directory to a new location' +
 				'\n\t (rm [[i;;]path])                  Removes a file or directory' +
@@ -618,7 +618,7 @@ var primitiveProcedures = {
 		var path = Filesystem.saveFile(args[0], args[1]);
 		return new Array('Saved file ' + path);
 	},
-	'append': function (args) {
+	'appnd': function (args) {
 		var contents = Filesystem.readFile(args[0]);
 		var newContents = contents ? (contents + '\n' + args[1]) : '';
 		var path = Filesystem.saveFile(args[0], newContents);

@@ -82,6 +82,14 @@ var fileSystemFrame = {
 									"\n(define else #t)" +
 						      "\n(define nil '())" +
 									"\n(define (null? lst) (= (length lst) 0))" +
+									"\n(define (append ls1 ls2)" +
+									"\n   (if (null? ls1)" +
+									"\n     ls2" +
+									"\n     (cons (car ls1) (append (cdr ls1) ls2))))" +
+									"\n(define (reverse lst)" +
+									"\n	  (if (null? lst)" +
+									"\n	      nil" +
+									"\n	      (append (reverse (cdr lst)) (list (car lst)))))" +
 									"\n(define (intersperse x y)" +
 									"\n    (if (= (length x) 1)" +
 									"\n        x" +
@@ -123,6 +131,8 @@ var fileSystemFrame = {
     							"\n		(cond ((file? item) (length (read item)))" +
          				 	"\n				  ((dir? item) (sum (map size (map (lambda (x) (path item x)) (ls item)))))" +
          		 			"\n					(else 0)))" + 
+         		 			"\n(define (get-name path)" +
+    							"\n   (car (reverse (js-apply 'split path '/))))" +
 									"\n(define (kill-all) (map kill (filter (lambda (x) (>= x 0)) (map car (processes)))))"
 			},
 			'justforfun.lsp': {
