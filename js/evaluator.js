@@ -620,7 +620,7 @@ var primitiveProcedures = {
 	},
 	'appnd': function (args) {
 		var contents = Filesystem.readFile(args[0]);
-		var newContents = contents ? (contents + '\n' + args[1]) : '';
+		var newContents = contents ? (contents + '\n' + args[1]) : args[1];
 		var path = Filesystem.saveFile(args[0], newContents);
 		return new Array('Updated file ' + path);
 	},
