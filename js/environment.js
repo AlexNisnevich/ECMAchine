@@ -62,11 +62,10 @@ var fileSystemFrame = {
 			'processmonitor.app': {
 				'type': 'file',
 				'contents': "(let ((header (list 'Processes '{evals/sec})) " +
-								"\n				 (perfInfo (sort" +
-								"\n						(map " +
-						    "\n       			(lambda (proc) (list (cadr proc) (performance (car proc))))" +
-						    "\n       			(processes))" +
-						    "\n   				(lambda (proc) (- (cadr proc))))))" +
+						  "\n      (perfInfo (sort" +
+						  "\n                   (map (lambda (proc) (list (cadr proc) (performance (car proc))))" +
+						  "\n       			     (processes))" +
+						  "\n   				(lambda (proc) (- (cadr proc))))))" +
 					      "\n       (overlay (intersperse (cons header perfInfo) (newline)) -30 70 'procMon))"
 			},
 			'memorymonitor.app': {

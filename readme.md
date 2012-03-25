@@ -392,15 +392,108 @@ ecmachine:/ guest$ (search 'apps 'mapreduce.lsp)
 #f
 ```
 
+What if we want to find all filenames that _contain_ a certain string, rather than just exact matches? We can write a `contains` function for strings using JavaScript's `String.indexOf()` method:
+
+```lisp
+(define (contains haystack needle)
+	(!= -1 (js-apply 'indexOf haystack needle)))
+```
+
+and now we can just replace `(= (get-name dir) name)` with `(contains (get-name dir) name)`.
+
+We can even search file bodies rather than filenames, by replacing `(= (get-name dir) name)` with `(contains (read dir) name)`.
+
 #### Process Manipulation Recipes
 
 ##### Process Cleanup
 
+Manipulating processes is not so different from manipulating files. For starters, how would we use the `kill` function to kill all running processes at once?
+
+Note that `(processes)` returns a list of pid-name pairs:
+
+```
+ecmachine:/ guest$ (processes)
+((-1 Terminal) (0 clock.app) (1 analogclock.app) (2 processmonitor.app) (3 memorymonitor.app))
+```
+
+Attempting to kill the Terminal process would give an error, so what we really want to do is map `kill` onto `(0 1 2 3)`. We can do that as follows:
+
+```lisp
+(define (kill-all)
+	(map kill 
+	     (filter (lambda (x) (>= x 0)) 
+	     	     (map car 
+	     	          (processes)))))
+```
+
+Does it work?
+
+```
+ecmachine:/ guest$ (kill-all)
+((Process with PID 0 [clock.app] terminated) (Process with PID 1 [analogclock.app] terminated) (Process with PID 2 [processmonitor.app] terminated) (Process with PID 
+3 [memorymonitor.app] terminated))
+```
+
 ##### A Simple Task Manager
+
+Let's say we want to constantly keep track of the performance of our running processes, so that we can tell if any particular application is hogging up our resources.
+
+First things first, we'll have to get the performance of every process - we can do this by taking the above recipe and replacing `kill` with `performance`. Of course, just having a list of numbers with no context wouldn't be very helpful - it would be better to get a list of pairs of the form `(name performance)`. We can do that as follows:
+
+```lisp
+(map (lambda (proc) (list (cadr proc) (performance (car proc))))
+     (processes))
+```
+
+and if we want to sort the processes by performance, in descending order of evals/sec, we can use `sort`:
+
+```lisp
+(sort
+	(map (lambda (proc) (list (cadr proc) (performance (car proc))))
+	     (processes))
+	(lambda (proc) (- (cadr proc))))
+```
+
+This gives us:
+
+```
+((processmonitor.app 538.13) (memorymonitor.app 340.33) (analogclock.app 195.025) (clock.app 14.959) (Terminal 0.145))
+```
+
+We're almost there! Now let's say we want to put each pair on its own line - that is, we want to insert a newline between each pair. One way to do this is to write an `intersperse` function that inserts a given item between every pair of elements in a list:
+
+```lisp
+(define (intersperse lst elt)
+	(if (= (length lst) 1)
+	    x 
+	    (cons (car x) 
+	          (cons y (intersperse (cdr x) y)))))
+```
+
+Now that we have these pieces, we can put it all together to make an application that sorts the running processes by performance and displays the results as an overlay:
+
+```lisp
+(let ((header (list 'Processes '{evals/sec})) 
+      (perfInfo (sort
+                   (map (lambda (proc) (list (cadr proc) (performance (car proc))))
+       			(processes))
+   		   (lambda (proc) (- (cadr proc))))))
+     (overlay (intersperse (cons header perfInfo) (newline)) -30 70 'procMon))
+```
+
+This application is saved in `/apps/processmonitor.app` and can be run at 1-second intervals with:
+
+```lisp
+(start (path 'apps 'processmonitor.app) 1000)
+```
 
 #### Miscellaneous Recipes
 
 ##### Analog Clock
+
+##### Notes Manager
+
+##### Event Logger
 
 What's Next?
 -----
