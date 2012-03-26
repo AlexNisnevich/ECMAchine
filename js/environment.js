@@ -129,7 +129,7 @@ var fileSystemFrame = {
 			'files.lsp': {
 				'type': 'file',
 				'contents': "(define (size item)" +
-    							"\n		(cond ((file? item) (len (read item)))" +
+    							"\n		(cond ((file? item) (length (read item)))" +
          				 	"\n				  ((dir? item) (sum (map size (map (lambda (x) (path item x)) (ls item)))))" +
          		 			"\n					(else 0)))" + 
          		 			"\n(define (get-name path)" +
