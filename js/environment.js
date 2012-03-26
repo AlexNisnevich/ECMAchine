@@ -75,28 +75,30 @@ var fileSystemFrame = {
 		},
 		'/startup': {
 			// Lisp functions
-			'utility.lsp': {
+			'_utility.lsp': { // utility.lsp must be loaded first
 				'type': 'file',
 				'contents': "(define (cadr x) (car (cdr x)))" +
-									"\n(define else #t)" +
-						      "\n(define nil '())" +
-									"\n(define (null? lst) (= (length lst) 0))" +
-									"\n(define (append ls1 ls2)" +
-									"\n   (if (null? ls1)" +
-									"\n     ls2" +
-									"\n     (cons (car ls1) (append (cdr ls1) ls2))))" +
-									"\n(define (reverse lst)" +
-									"\n	  (if (null? lst)" +
-									"\n	      nil" +
-									"\n	      (append (reverse (cdr lst)) (list (car lst)))))" +
-									"\n(define (intersperse x y)" +
-									"\n    (if (= (length x) 1)" +
-									"\n        x" +
-									"\n        (cons (car x) (cons y (intersperse (cdr x) y)))))" +
-									"\n(define (sum lst)" +
-									"\n    (if (null? lst)" +
-									"\n        0" + 
-									"\n        (+ (car lst) (sum (cdr lst)))))"
+							"\n(define else #t)" +
+						    "\n(define nil '())" +
+							"\n(define (null? lst) (= (length lst) 0))" +
+							"\n(define (append ls1 ls2)" +
+							"\n   (if (null? ls1)" +
+							"\n     ls2" +
+							"\n     (cons (car ls1) (append (cdr ls1) ls2))))" +
+							"\n(define (reverse lst)" +
+							"\n	  (if (null? lst)" +
+							"\n	      nil" +
+							"\n	      (append (reverse (cdr lst)) (list (car lst)))))" +
+							"\n(define (intersperse x y)" +
+							"\n    (if (= (length x) 1)" +
+							"\n        x" +
+							"\n        (cons (car x) (cons y (intersperse (cdr x) y)))))" +
+							"\n(define (sum lst)" +
+							"\n    (if (null? lst)" +
+							"\n        0" + 
+							"\n        (+ (car lst) (sum (cdr lst)))))" +
+							"\n(define (contains haystack needle)" +
+							"\n    (!= -1 (js-apply 'indexOf haystack needle)))"
 			},
 			'mapreduce.lsp': {
 				'type': 'file',
@@ -127,7 +129,7 @@ var fileSystemFrame = {
 			'files.lsp': {
 				'type': 'file',
 				'contents': "(define (size item)" +
-    							"\n		(cond ((file? item) (length (read item)))" +
+    							"\n		(cond ((file? item) (len (read item)))" +
          				 	"\n				  ((dir? item) (sum (map size (map (lambda (x) (path item x)) (ls item)))))" +
          		 			"\n					(else 0)))" + 
          		 			"\n(define (get-name path)" +

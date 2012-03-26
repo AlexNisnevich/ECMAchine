@@ -64,9 +64,7 @@
 			var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
 		}
 		
-		console.log('terminalResize: Current dimensions: ' + terminal.width() + ',' + terminal.height());
 		if (terminal.width() != newWidth) {
-			console.log('terminalResize: Resizing width to ' + newWidth);
 			terminal.resize(newWidth, terminal.height());
 		}
 	}
