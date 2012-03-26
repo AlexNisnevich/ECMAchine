@@ -5,35 +5,9 @@ ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It h
 
 This tutorial will walk you through the file and process management features of ECMAchine, and is aimed at people with at least a little bit of experience with Scheme or another Lisp dialect. 
 
-Table of Contents
------
+!TOC
 
-1\.  [The REPL](#therepl)  
-2\.  [Introspection](#introspection)  
-3\.  [The File System](#thefilesystem)  
-3.0.1\.  [Folders](#folders)  
-3.0.2\.  [Files](#files)  
-3.0.3\.  [Other File System Commands](#otherfilesystemcommands)  
-4\.  [Higher-Order Functions](#higherorderfunctions)  
-4.0.1\.  [Map](#map)  
-4.0.2\.  [Filter](#filter)  
-5\.  [A Few More Functions](#afewmorefunctions)  
-5.0.1\.  [js-apply](#jsapply)  
-5.0.2\.  [length](#length)  
-5.0.3\.  [sort](#sort)  
-5.0.4\.  [time](#time)  
-5.0.5\.  [newline](#newline)  
-6\.  [Scripts](#scripts)  
-7\.  [Processes](#processes)  
-8\.  [Recipes](#recipes)  
-8.0.1\.  [File System Recipes](#filesystemrecipes)  
-8.0.2\.  [Process Manipulation Recipes](#processmanipulationrecipes)  
-8.0.3\.  [Miscellaneous Recipes](#miscellaneousrecipes)  
-9\.  [What's Next?](#what'snext?)  
-
-<a name="therepl"></a>
-
-1\. The REPL
+The REPL
 -----
 
 ECMAchine supports the expected Scheme arithmetic commands, list-processing commands, and control structures:
@@ -91,9 +65,7 @@ ecmachine:/ guest$ (fib 10)
 
 But we already know about Lisp. What makes ECMAchine different?
 
-<a name="introspection"></a>
-
-2\. Introspection
+Introspection
 -----
 
 You can view all of currently defined variables in the global environment with the `environment` command. 
@@ -136,14 +108,10 @@ ecmachine:/ guest$ (peek 0)
 (overlay (time (list 'h ': 'm ': 's)) -30 -30 'clock)
 ```
 
-<a name="thefilesystem"></a>
-
-3\. The File System
+The File System
 -----
 
-<a name="folders"></a>
-
-#### 3.0.1\. Folders
+#### Folders
 
 The file system is navigated using the `cd` and `ls` functions. The preferred method for concatenating file/directory names into paths is with the `path` function, as shown below:
 
@@ -166,9 +134,7 @@ ecmachine:/ guest$ (cd (path 'usr 'usr2))
 ecmachine:/usr/usr2 guest$ 
 ```
 
-<a name="files"></a>
-
-#### 3.0.2\. Files
+#### Files
 
 The `read` function is used to read the contents of a file, while `save` and `append` create a new file and append data to an existing file, respectively.
 
@@ -189,24 +155,18 @@ ecmachine:/ guest$ (read 'blah.txt)
 (Hooray!)
 ```
 
-<a name="otherfilesystemcommands"></a>
-
-#### 3.0.3\. Other File System Commands
+#### Other File System Commands
 
 You can move, copy, and delete files and directories with the `mv`, `cp`, and `rm` commands, respectively.
 
 The predicates `file?` and `dir?` can be used to find if a path points to a file, directory, or neither.
 
-<a name="higherorderfunctions"></a>
-
-4\. Higher-Order Functions
+Higher-Order Functions
 -----
 
 Before we continue into scripts and processes, let's define two functions that we'll be using a lot later: `map` and `filter`. (In fact, these functions are so important that in ECMAchine, they're both defined in `/startup/mapreduce.lsp` and loaded at startup.)
 
-<a name="map"></a>
-
-#### 4.0.1\. Map
+#### Map
 
 `map` takes another function and maps it to a list, executing it for every element of the list and combining the results into a new list:
 
@@ -222,9 +182,7 @@ ecmachine:/ guest$ (map length '(hello lisp))
 (5 4)
 ```
 
-<a name="filter"></a>
-
-#### 4.0.2\. Filter
+#### Filter
 
 `filter` takes a predicate (that is, a function that returns a boolean value) and filters all the elements of a list that satisfy the predicate:
 
@@ -241,16 +199,12 @@ ecmachine:/ guest$ (filter (lambda (x) (= (length x) 3)) '(the blue cat))
 (the cat)
 ```
 
-<a name="afewmorefunctions"></a>
-
-5\. A Few More Functions
+A Few More Functions
 -----
 
 We're almost at the fun part of the tutorial, but before we get there, I should briefly mention a few more important functions that are included as primitives in ECMAchine.
 
-<a name="jsapply"></a>
-
-#### 5.0.1\. js-apply
+#### js-apply
 
 ```(js-apply func [obj] args)``` is one of the most powerful primitives in ECMAchine, because it allows you to use almost any function in JavaScript's standard library. In its two-argument form, it evaluates ```func(args)``` in JavaScript - in this case, ```func``` is usually a the name of a Javascript library method like ```Math.sin```. In its three-argument form, it evaluates ```obj.func(args)```, where ```obj``` is generally a string or a list.
 
@@ -281,9 +235,7 @@ ecmachine:/ guest$ (math 'sin 1)
 0.8414709848078965
 ```
 
-<a name="length"></a>
-
-#### 5.0.2\. length
+#### length
 
 ```
 ecmachine:/ guest$ (inspect-primitive length)
@@ -300,9 +252,7 @@ ecmachine:/ guest$ (length (read 'readme.txt))
 
 ```(length obj)``` returns the length of an array or string, using JavaScript's `length` property. One common use for it is to retrieve the length of a file.
 
-<a name="sort"></a>
-
-#### 5.0.3\. sort
+#### sort
 
 ```
 ecmachine:/ guest$ (inspect-primitive sort)
@@ -332,9 +282,7 @@ ecmachine:/ guest$ (sort '((5 apples) (3 bananas) (8 oranges) (2 pears) (4 peach
 
 ```(sort lst [keyfunc])``` sorts a list in ascending order. If a second parameter is specified, it is a key function that is applied to the list's elements before sorting.
 
-<a name="time"></a>
-
-#### 5.0.4\. time
+#### time
 
 ```
 ecmachine:/ guest$ (inspect-primitive time)
@@ -365,15 +313,11 @@ ecmachine:/ guest$ (time '(h : m : s))
 
 ```(time)``` returns the current time, either in the default JavaScript time format (that is, Unix time in milliseconds), or formatted with an optional format string. We will use it later to build clocks.
 
-<a name="newline"></a>
-
-#### 5.0.5\. newline
+#### newline
 
 ```(newline)``` inserts a newline character. One use of it is in the Process Manager application described later, where it's interspersed within a list to put each list element in a new line.
 
-<a name="scripts"></a>
-
-6\. Scripts
+Scripts
 -----
 
 A **script** is an executable Lisp file. Scrips are created like any other file, and by convention end in the file extension `.s`. The `exec` command is used to execute scripts.
@@ -404,9 +348,7 @@ _As an aside, could we delete the contents of a directory without deleting the e
 (map rm (map (lambda (x) (path 'usr x)) (ls 'usr)))
 ```
 
-<a name="specialtypesofscripts"></a>
-
-#### 6.0.1\. Special Types of Scripts
+#### Special Types of Scripts
 
 There are two more important types of scripts, that have their own extensions by convention.
 
@@ -417,43 +359,27 @@ Why would we need shortcuts? One big reason has to do with the `/startup` direct
 
 Now, scripts are cool, but wouldn't it be cooler if we could somehow run a script continuously in the background? This is where processes come in.
 
-<a name="processes"></a>
-
-7\. Processes
+Processes
 -----
 
 A **process** is created when a script is called with the `start` function. `(start path interval)` begins running the script at _path_ with a refresh rate of _interval_ milliseconds. By convention, scripts that are meant to be run as processes are called **applications** and end in the file extension `.app`.
 
-<a name="overlays"></a>
+#### Overlays
 
-#### 7.0.1\. Overlays
+#### Example: A Simple Clock
 
-<a name="example:asimpleclock"></a>
+#### Process Management
 
-#### 7.0.2\. Example: A Simple Clock
+#### Process Performance
 
-<a name="processmanagement"></a>
-
-#### 7.0.3\. Process Management
-
-<a name="processperformance"></a>
-
-#### 7.0.4\. Process Performance
-
-<a name="recipes"></a>
-
-8\. Recipes
+Recipes
 -----
 
 So, now that we have all of these tools, what can we do with them? Here are some functions and processes that I've come up with. Many of them are included in ECMAchine as scripts, processes, or library functions.
 
-<a name="filesystemrecipes"></a>
+#### File System Recipes
 
-#### 8.0.1\. File System Recipes
-
-<a name="directorycleanup"></a>
-
-##### 8.0.1.1\. Directory Cleanup
+##### Directory Cleanup
 
 Let's start with file and folder manipulation. Here's one that was already mentioned above: a function to delete all of the elements of a directory. 
 
@@ -466,9 +392,7 @@ Let's start with file and folder manipulation. Here's one that was already menti
 
 Why is the `(lambda (x) (path dir x))` mapping necessary? Let's say that we want to delete the contents of subfolder `/usr` and `(ls 'usr)` gives `(a b)`. We really want to execute `(rm (path 'usr 'a))` and `(rm (path 'usr 'b))`, rather than `(rm 'a)` and `(rm 'b)`. In other words, this mapping is used to preserve filepaths when traversing directory contents.
 
-<a name="file/foldersize"></a>
-
-##### 8.0.1.2\. File/Folder Size
+##### File/Folder Size
 
 Now let's try a more complicated example: calculating the size of a file or directory.
 
@@ -502,9 +426,7 @@ Now that we have `size` written, we can write a simple application that periodic
 (overlay (list 'Filesystem 'size: (/ (size '/) 1000) 'KB) -30 30 'memMon)
 ```
 
-<a name="filesearch"></a>
-
-##### 8.0.1.3\. File Search
+##### File Search
 
 Now let's try using a similar structure to write a `search` function that searches for a file with a given name recursively within a directory, returning the file's path if it is found and `#f` otherwise.
 
@@ -587,13 +509,9 @@ and now we can just replace `(= (get-name dir) name)` with `(contains (get-name 
 
 We can even search file bodies rather than filenames, by replacing `(= (get-name dir) name)` with `(contains (read dir) name)`.
 
-<a name="processmanipulationrecipes"></a>
+#### Process Manipulation Recipes
 
-#### 8.0.2\. Process Manipulation Recipes
-
-<a name="processcleanup"></a>
-
-##### 8.0.2.1\. Process Cleanup
+##### Process Cleanup
 
 Manipulating processes is not so different from manipulating files. For starters, how would we use the `kill` function to kill all running processes at once?
 
@@ -622,9 +540,7 @@ ecmachine:/ guest$ (kill-all)
 3 [memorymonitor.app] terminated))
 ```
 
-<a name="asimpletaskmanager"></a>
-
-##### 8.0.2.2\. A Simple Task Manager
+##### A Simple Task Manager
 
 Let's say we want to constantly keep track of the performance of our running processes, so that we can tell if any particular application is hogging up our resources.
 
@@ -677,25 +593,15 @@ This application is saved in `/apps/processmonitor.app` and can be run at 1-seco
 (start (path 'apps 'processmonitor.app) 1000)
 ```
 
-<a name="miscellaneousrecipes"></a>
+#### Miscellaneous Recipes
 
-#### 8.0.3\. Miscellaneous Recipes
+##### Analog Clock
 
-<a name="analogclock"></a>
+##### Notes Manager
 
-##### 8.0.3.1\. Analog Clock
+##### Event Logger
 
-<a name="notesmanager"></a>
-
-##### 8.0.3.2\. Notes Manager
-
-<a name="eventlogger"></a>
-
-##### 8.0.3.3\. Event Logger
-
-<a name="what'snext?"></a>
-
-9\. What's Next??
+What's Next?
 -----
 
 Here are some things I'd like to see in ECMAchine:
