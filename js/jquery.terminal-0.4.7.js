@@ -1123,6 +1123,7 @@ function get_stack(caller) {
 					if (command.split('(').length > command.split(')').length) { 
 						// expression not complete
 						terminal.set_command(command + '\n..  ');
+						terminalRefresh();
 						return;
 					}
 					

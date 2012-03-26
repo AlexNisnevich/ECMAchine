@@ -19,10 +19,10 @@
 	        if (command !== '') {
         		var result = evaluate(command);
         		if (result !== undefined) {
-              terminalEcho(String(result));
-            } else {
-           		terminalRefresh();
-            }
+	              terminalEcho(String(result));
+	            } else {
+	           		terminalRefresh();
+	            }
 	        } else {
 	           terminalEcho('');
 	        }
@@ -35,10 +35,14 @@
 	        	terminal = term;
 	        	initEvaluator();
 	        	initFileSystem();
+	        	terminalResize();
 	        }
 		});
+		
 	    $('body').css('display', 'none');
 	    $('<div>').attr('id', 'overlays').appendTo('.terminal');
+	    
+	    $(window).resize(terminalRefresh);
 	});
 	
 	/*
@@ -59,15 +63,23 @@
 		} else {
 			var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
 		}
-		terminal.resize(newWidth, terminal.height());
+		
+		console.log('terminalResize: Current dimensions: ' + terminal.width() + ',' + terminal.height());
+		if (terminal.width() != newWidth) {
+			console.log('terminalResize: Resizing width to ' + newWidth);
+			terminal.resize(newWidth, terminal.height());
+		}
 	}
 	
 	/*
 	 * Refresh terminal: resize + scroll to bottom
 	 */
 	function terminalRefresh() {
-		terminalResize();
-		$(document).scrollTop($(document).height());
+		// timeout needed to avoid some silly UI issues
+		setTimeout( function() { 
+			terminalResize();
+			$(document).scrollTop($(document).height());
+		}, 100);
 	}
   </script>
   <script type="text/javascript">
