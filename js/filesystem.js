@@ -1,4 +1,3 @@
-
 var Filesystem = {
 	fs: fileSystemFrame['__fileSystem'], // path to file system
 	currentDir: '/', // current directory
@@ -239,14 +238,15 @@ var Filesystem = {
 		this.checkPathExists(newFolderPath);
 		
 		// if copying to a dir, append current filename to path
-		if (this.getFile(newPath).type == 'dir') {
+		if (this.getFile(newPath) && this.getFile(newPath).type == 'dir') {
 			newPath = newPath + '/' + this.getNameFromPath(path);
 		}
 		
-		var contents = file.contents;
-		this.setFile(newPath, { 'type': 'file', 'contents': contents });
 		if (file.type == 'dir') {
 			this.setDir(newPath, this.getDir(oldPath));
+			this.setFile(newPath, { 'type': 'dir' });
+		} else {
+			this.setFile(newPath, { 'type': 'file', 'contents': file.contents });
 		}
 		
 		return {
