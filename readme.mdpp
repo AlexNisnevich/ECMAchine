@@ -671,9 +671,34 @@ This application is saved in `/apps/processmonitor.app` and can be run at 1-seco
 
 #### Analog Clock
 
-#### Notes Manager
+Who says that you can't have fancy graphics in a text-based environment? By setting up multiple overlays and performing some trigonometry, we can build an analog clock widget, just like the kind you can get in your fancy operating system of choice:
 
-#### Event Logger
+```lisp
+(let* ((center-x -120) (center-y -160)
+       (pi 3.141592653589793)
+       (s-angle (* (/ pi 30) (+ (car (time '(s))) 15)))
+       (m-angle (* (/ pi 30) (+ (car (time '(m))) 15 (/ (+ (car (time '(s))) 15) 60))))
+       (h-angle (* (/ pi 6) (+ (car (time '(h))) 15 (/ (+ (car (time '(m))) 15) 60))))
+       (x-pos-s (- center-x (* 90 (math 'cos s-angle))))
+       (y-pos-s (- center-y (* 90 (math 'sin s-angle))))
+       (x-pos-m (- center-x (* 60 (math 'cos m-angle))))
+       (y-pos-m (- center-y (* 60 (math 'sin m-angle))))
+       (x-pos-h (- center-x (* 30 (math 'cos h-angle))))
+       (y-pos-h (- center-y (* 30 (math 'sin h-angle)))))
+      (begin 
+         (overlay '(O) center-x center-y 'analogclockcenter)
+         (overlay '(h) x-pos-h y-pos-h 'analogclockhours)
+         (overlay '(m) x-pos-m y-pos-m 'analogclockminutes)
+         (overlay '(s) x-pos-s y-pos-s 'analogclockseconds)))
+```
+
+(`let*` is a special binding construct that evaluates each binding in an environment containing the previous bindings. We can't use the regular `let` construct here because some of the bindings depend on each other.)
+
+This application is saved in `/apps/analogclock.app` and can be run with:
+
+```lisp
+(start (path 'apps 'analogclock.app) 1000)
+```
 
 What's Next?
 -----
@@ -682,6 +707,7 @@ Here are some things I'd like to see in ECMAchine:
 
 - Language 
  - Comments
+ - True strings that aren't just quoted lists
  - Primitives for AJAX requests
  - Newlines should be preserved when:
      - writing to files
@@ -708,3 +734,13 @@ Here are some things I'd like to see in ECMAchine:
 	- (restart) command
 	- User accounts?
 	- Some sort of import/export support?
+
+Acknowledgements
+-----
+
+I'd like to thank:
+
+- Jakub Jankiewicz's [jQuery Terminal Emulator](http://terminal.jcubic.pl/), without which I wouldn't have such a realistic-looking terminal
+- John Reese's [Markdown Preprocessor](https://github.com/jreese/markdown-pp), which I use to preprocess this readme file
+- Abelson and Sussman, whose [wizardly textbook](http://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs) was an invaluable resource in designing the REPL
+- [Tikhon Jelvis](https://github.com/TikhonJelvis), for his help in implementing the REPL
