@@ -3,7 +3,9 @@ ECMAchine
 
 ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It has a virtual filesystem that is accessed through Unix-like commands, as well as a rudimentary process management system.
 
-This tutorial will walk you through the file and process management features of ECMAchine, and is aimed at people with at least a little bit of experience with Scheme or another Lisp dialect. 
+**Why?** I made ECMAchine for a few reasons. For one, it's an interesting experiment in what a filesystem based around S-expressions could look like. It was also a good exercise in writing an interpreter and finally applying all those things I learned in SICP. Most importantly, though, ECMAchine is simply a lot of fun. I've spent countless hours playing around with it and coming up with little programs for it, and hopefully by the end of this tutorial you, the reader, will be able to get a sense for how fun it is to work with ECMAchine.
+
+This tutorial will walk you through the file and process management features of ECMAchine, and then show a bunch of examples of cool things that you can do with them. It is aimed at people with at least a little bit of experience with Scheme or another Lisp dialect. 
 
 Table of Contents
 -----
@@ -20,6 +22,8 @@ ecmachine:/ guest$ (+ 1 2 3 4)
 10
 ecmachine:/ guest$ (- (/ 12 3) 2)
 2
+ecmachine:/ guest$ (cons 'a '(b c))
+(a b c)
 ecmachine:/ guest$ (list 1 2 (list 3 4))
 (1 2 (3 4))
 ecmachine:/ guest$ (car '(1 2 3))
@@ -369,11 +373,81 @@ A **process** is created when a script is called with the `start` function. `(st
 
 ### Overlays
 
+Since processes run in the background, the terminal generally isn't the best place for them to send their output - ideally, a process would be able to output directly to some part of the screen. Fortunately, **overlays** exist for just this purpose.
+
+An overlay is created with the `overlay` command as follows:
+
+```lisp
+(overlay '(text to display) x-pos y-pos 'nameOfOverlay)
+```
+
+The overlay is placed at position `(x-pos, y-pos)`, where `x-pos` counts pixels from the left if positive and from the right if negative and likewise `y-pos` counts pixels from the top if positive and from the bottom if negative. For example, if `(x-pos,y-pos) = (-30, -30)`, the overlay would be placed . In all of my examples, `x-pos` is always negative, and I don't really see much use for left-aligned overlays in general because they would get in the way of the terminal.
+
+Only one overlay with a given name can exist at any time - creating a new overlay with the same name as an existing one has the effect of replacing the old overlay with the new one. This means that if a processs continually calls the `overlay` function with the same name parameter, the overlay is continually updated.
+
+Let's use what we've learned about processes and overlays to make a clock application.
+
 ### Example: A Simple Clock
+
+All it takes to make a clock is:
+
+```lisp
+(overlay (time (list 'h ': 'm ': 's)) -30 -30 'clock)
+```
+
+This gets the current time (in `HH:MM:SS` format) and displays it in the lower-right corner, 30 pixels from each side. If we save this as `/apps/clock.app` we can run it as a process like this:
+
+```
+ecmachine:/ guest$ (start (path 'apps 'clock.app) 1000)
+(Starting process at apps/clock.app with PID 4)
+```
 
 ### Process Management
 
+Now that we've know how to start processes, let's see what we can do with running processes.
+
+```
+ecmachine:/ guest$ (processes)
+((-1 Terminal) (4 clock.app))
+ecmachine:/ guest$ (peek 4)
+(overlay (time (list 'h ': 'm ': 's)) -30 -30 'clock)
+ecmachine:/ guest$ (kill 4)
+(Process with PID 4 [clock.app] terminated)
+```
+
+There are three commands for dealing with processes, that are illustrated above:
+
+- `(processes)` returns a list of running processes, with each process represented as a `(pid name)` pair
+- `(peek pid)` shows the application code for the given process
+- `(kill pid)` kills the given process and hides all overlays that were used by it
+
+Note that the terminal itself is always represented as process -1, but cannot be killed. As we will see later, this means that something like `(map kill (map car (processes)))` won't work, while `(map kill (filter (λ (x) (> x -1)) (map car (processes))))` will.
+
 ### Process Performance
+
+ECMAchine keeps track of the performance of every process (including the terminal) with a metric called _evals per second_. Every time a call to `lispEval` is made by a process, its eval count is incremented, and the evals/sec of a process is simply the amount of evals made divided by the number of seconds it has been running.
+
+The `(performance pid)` function returns the evals/sec of the given process:
+
+```
+ecmachine:/ guest$ (start (path 'apps 'clock.app) 1000)
+(Starting process at apps/clock.app with PID 4)
+ecmachine:/ guest$ (processes)
+((-1 Terminal) (4 clock.app))
+ecmachine:/ guest$ (performance 4)
+15.22
+```
+
+Of course, the performance of a process depends both on the application and on the refresh interval. If we set the clock to update every millisecond, we get:
+
+```
+ecmachine:/ guest$ (start (path 'apps 'clock.app) 1)
+(Starting process at apps/clock.app with PID 5)
+ecmachine:/ guest$ (performance 5)
+3196.686
+```
+
+We will use the `performance` function later to write a simple task manager application.
 
 Recipes
 -----
@@ -600,9 +674,34 @@ This application is saved in `/apps/processmonitor.app` and can be run at 1-seco
 
 #### Analog Clock
 
-#### Notes Manager
+Who says that you can't have fancy graphics in a text-based environment? By setting up multiple overlays and performing some trigonometry, we can build an analog clock widget, just like the kind you can get in your fancy operating system of choice:
 
-#### Event Logger
+```lisp
+(let* ((center-x -120) (center-y -160)
+       (pi 3.141592653589793)
+       (s-angle (* (/ pi 30) (+ (car (time '(s))) 15)))
+       (m-angle (* (/ pi 30) (+ (car (time '(m))) 15 (/ (+ (car (time '(s))) 15) 60))))
+       (h-angle (* (/ pi 6) (+ (car (time '(h))) 15 (/ (+ (car (time '(m))) 15) 60))))
+       (x-pos-s (- center-x (* 90 (math 'cos s-angle))))
+       (y-pos-s (- center-y (* 90 (math 'sin s-angle))))
+       (x-pos-m (- center-x (* 60 (math 'cos m-angle))))
+       (y-pos-m (- center-y (* 60 (math 'sin m-angle))))
+       (x-pos-h (- center-x (* 30 (math 'cos h-angle))))
+       (y-pos-h (- center-y (* 30 (math 'sin h-angle)))))
+      (begin 
+         (overlay '(O) center-x center-y 'analogclockcenter)
+         (overlay '(h) x-pos-h y-pos-h 'analogclockhours)
+         (overlay '(m) x-pos-m y-pos-m 'analogclockminutes)
+         (overlay '(s) x-pos-s y-pos-s 'analogclockseconds)))
+```
+
+(`let*` is a special binding construct that evaluates each binding in an environment containing the previous bindings. We can't use the regular `let` construct here because some of the bindings depend on each other.)
+
+This application is saved in `/apps/analogclock.app` and can be run with:
+
+```lisp
+(start (path 'apps 'analogclock.app) 1000)
+```
 
 What's Next?
 -----
@@ -611,6 +710,7 @@ Here are some things I'd like to see in ECMAchine:
 
 - Language 
  - Comments
+ - True strings that aren't just quoted lists
  - Primitives for AJAX requests
  - Newlines should be preserved when:
      - writing to files
@@ -637,4 +737,13 @@ Here are some things I'd like to see in ECMAchine:
 	- (restart) command
 	- User accounts?
 	- Some sort of import/export support?
-	 - If I could somehow hack up a server to allow SCP access to "ECMAchine", that would be incredibly cool
+
+Acknowledgements
+-----
+
+I'd like to thank:
+
+- Jakub Jankiewicz's [jQuery Terminal Emulator](http://terminal.jcubic.pl/), without which I wouldn't have such a realistic-looking terminal
+- John Reese's [Markdown Preprocessor](https://github.com/jreese/markdown-pp), which I use to preprocess this readme file
+- Abelson and Sussman, whose [wizardly textbook](http://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs) was an invaluable resource in designing the REPL
+- [Tikhon Jelvis](https://github.com/TikhonJelvis), for his help in implementing the REPL
