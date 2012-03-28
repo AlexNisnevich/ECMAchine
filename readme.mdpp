@@ -5,6 +5,9 @@ ECMAchine is an in-browser Scheme REPL that is also a toy operating system. It h
 
 This tutorial will walk you through the file and process management features of ECMAchine, and is aimed at people with at least a little bit of experience with Scheme or another Lisp dialect. 
 
+Table of Contents
+-----
+
 !TOC
 
 The REPL
