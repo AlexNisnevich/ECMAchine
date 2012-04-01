@@ -15,32 +15,32 @@
     var terminal = null;
     
     jQuery(document).ready(function($) {
-	    $(document.documentElement).terminal(function(command, term) {
-	    	terminal = term;
-	        if (command !== '') {
-        		var result = evaluate(command);
-        		if (result !== undefined) {
-	              terminalEcho(String(result));
-	            } else {
-	           		terminalRefresh();
-	            }
-	        } else {
-	           terminalEcho('');
-	        }
-		}, {
-	        greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
-	        name: 'terminal',
-	        height: 200,
-	        prompt: 'ecmachine:/ guest$',
-	        onInit: function(term) {
-	        	terminal = term;
-	        	initEvaluator();
-	        	initFileSystem();
-	        	terminalResize();
-	        }
-		});
+			$(document.documentElement).terminal(function(command, term) {
+				terminal = term;
+			    if (command !== '') {
+			  		var result = evaluate(command);
+			  		if (result !== undefined) {
+			          terminalEcho(String(result));
+			        } else {
+			       		terminalRefresh();
+			        }
+			    } else {
+			       terminalEcho('');
+			      }
+			}, {
+			      greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
+			    name: 'terminal',
+			    height: 200,
+			    prompt: 'ecmachine:/ guest$',
+			      onInit: function(term) {
+			      	terminal = term;
+			      	initEvaluator();
+			      	initFileSystem();
+			      	terminalResize();
+			      }
+			});
 		
-	    $('body').css('display', 'none');
+	    $('body').css('margin', '0');
 	    $('<div>').attr('id', 'overlays').appendTo('.terminal');
 	    
 	    $(window).resize(terminalRefresh);
