@@ -703,6 +703,14 @@ This application is saved in `/apps/analogclock.app` and can be run with:
 (start (path 'apps 'analogclock.app) 1000)
 ```
 
+#### Other Ideas
+
+Some other ideas for applications that I've been playing around with but haven't yet finalized code for include:
+
+- Automated backup
+- Simple anti-virus
+- Notes manager
+
 What's Next?
 -----
 

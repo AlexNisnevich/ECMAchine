@@ -779,6 +779,14 @@ This application is saved in `/apps/analogclock.app` and can be run with:
 (start (path 'apps 'analogclock.app) 1000)
 ```
 
+#### 8.3.2\. Other Ideas
+
+Some other ideas for applications that I've been playing around with but haven't yet finalized code for include:
+
+- Automated backup
+- Simple anti-virus
+- Notes manager
+
 <a name="what'snext?"></a>
 
 9\. What's Next??
@@ -789,7 +797,7 @@ Here are some things I'd like to see in ECMAchine:
 - Language 
  - Comments
  - True strings that aren't just quoted lists
- - Primitives for AJAX requests
+ - Primitive functions for making AJAX requests, thus enabling applications to communicate with the outside world
  - Newlines should be preserved when:
      - writing to files
      - displaying function contents
