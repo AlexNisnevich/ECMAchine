@@ -824,6 +824,7 @@ Here are some things I'd like to see in ECMAchine:
 I'd like to thank:
 
 - Jakub Jankiewicz's [jQuery Terminal Emulator](http://terminal.jcubic.pl/), without which I wouldn't have such a realistic-looking terminal
+- Kris Kowal's [es5-shim](https://github.com/kriskowal/es5-shim), for improving compatibility with older browsers
 - John Reese's [Markdown Preprocessor](https://github.com/jreese/markdown-pp), which I use to preprocess this readme file
 - Abelson and Sussman, whose [wizardly textbook](http://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs) was an invaluable resource in designing the REPL
 - [Tikhon Jelvis](https://github.com/TikhonJelvis), for his help in implementing the REPL
