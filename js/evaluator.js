@@ -502,10 +502,6 @@ var primitiveProcedures = {
 		return args;
 	},
 	'length': function (args) {
-		// Is length a primitive? It COULD be implemented recursively as
-		// (λ (x) (if (null? x) 0 (+ 1 (length (cdr x)))))
-		// but that requires null? to be defined (I choose to define null? in terms of length)
-		// John McCarthy included length as a primitive, so I'll follow his precedent.
 		return args[0].length;
 	},
 	
@@ -573,21 +569,22 @@ var primitiveProcedures = {
 	},
 	'time': function (args) {
 		var date = new Date();
-    if (args[0] == null)
-    	return date.getTime();
-    else 
-    	return args[0].map(function (str) {
-    		switch (str) {
-    			case 'h':
-    				return date.getHours();
-				case 'm':
-					return date.getMinutes();
-			case 's':
-				return date.getSeconds();
-		default:
-			return str;
-    		}
-    	});
+	    if (args[0] == null) {
+	    	return date.getTime();	    	
+	    } else {
+    		return args[0].map(function (str) {
+	    		switch (str) {
+	    			case 'h':
+	    				return date.getHours();
+					case 'm':
+						return date.getMinutes();
+				case 's':
+					return date.getSeconds();
+				default:
+					return str;
+		    	}
+	    	});
+	    }
 	},
 	
 	// Filesystem
@@ -620,7 +617,7 @@ var primitiveProcedures = {
 	},
 	'appnd': function (args) {
 		var contents = Filesystem.readFile(args[0]);
-		var newContents = contents ? (contents + '\n' + args[1]) : '';
+		var newContents = contents ? (contents + '\n' + args[1]) : args[1];
 		var path = Filesystem.saveFile(args[0], newContents);
 		return new Array('Updated file ' + path);
 	},
@@ -670,8 +667,6 @@ var primitiveProcedures = {
 			var result = evaluate(contents, pid);
 			if (result !== undefined) {
 				terminalEcho(result);
-			} else {
-				terminalResize();
 			}
 		}, args[1]);
 		
