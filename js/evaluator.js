@@ -16,17 +16,8 @@ var terminalProcess = {
 };
 
 /*
- * Modify toString behavior of lists to Lisp style
+ * GLOBALS
  */
-Array.prototype.toString = function() {
-	var sexp = '(' + this.join(' ') + ')';
-	return sexp;
-};
-Array.prototype.toStringNoOuterBraces = function() {
-	var sexp = this.join(' ');
-	return sexp;
-};
-Array.prototype.isList = true;
 
 function clone(obj){
     if(obj == null || typeof(obj) != 'object')
@@ -35,6 +26,44 @@ function clone(obj){
     for(var key in obj)
         temp[key] = clone(obj[key]);
     return temp;
+}
+
+/*
+ * Array class (used for linked lists)
+ */
+Array.prototype.isList = true;
+Array.prototype.toString = function() {
+	var sexp = '(' + this.join(' ') + ')';
+	return sexp;
+};
+Array.prototype.toStringNoOuterBraces = function() {
+	var sexp = this.join(' ');
+	return sexp;
+};
+Array.prototype.car = function () {
+	return this[0];
+}
+Array.prototype.cdr = function () {
+	return this.slice(1, this.length);
+}
+
+/*
+ * Pair class (used by cons when result is not a well-formed list)
+ */
+var Pair = function(car, cdr) {
+	this.contents = [car, cdr];
+	this.isPair = true;
+	this.length = 2;
+}
+Pair.prototype.toString = function() {
+	var sexp = '(' + this.contents.join(' . ') + ')';
+	return sexp;
+}
+Pair.prototype.car = function () {
+	return this.contents[0];
+}
+Pair.prototype.cdr = function () {
+	return this.contents[1];
 }
 
 // used by both eval and apply
@@ -250,9 +279,17 @@ function lispEval(exp, env) {
 	}
 	function textOfQuotation(exp) {
 		if (typeof exp == 'string') {
-			return parse(cdr(exp));
+			var quotedElt = parse(cdr(exp));
 		} else {
-			return cdr(exp)[0];
+			var quotedElt = cdr(exp)[0];
+		}
+		
+		if (quotedElt.isList && quotedElt.length == 3 && quotedElt[1] == '.') {
+			// quoted pair
+			return new Pair(quotedElt[0], quotedElt[2]);
+		} else {
+			// quoted list or string literal
+			return quotedElt;
 		}
 	}
 	function listOfValues(exps, env) {
@@ -505,16 +542,16 @@ var primitiveProcedures = {
 			newList.unshift(args[0]);
 			return newList;
 		} else {
-			return new Array(args[0], args[1]);
+			return new Pair(args[0], args[1]);
 		}
 	},
 	'car': function (args) {
 		var arg = args[0];
-		return arg[0];
+		return arg.car();
 	},
 	'cdr': function (args) {
 		var arg = args[0];
-		return arg.slice(1);
+		return arg.cdr();
 	},
 	'list': function (args) {
 		return args;
