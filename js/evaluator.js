@@ -310,13 +310,21 @@ function lispEval(exp, env) {
 	}
 	function makeProcedure(parameters, body, environment) {
 		var paramsList, argsParameter;
-		var dotIndex = parameters.lastIndexOf('.');
-		if (dotIndex != -1) {
-			paramsList = parameters.slice(0, dotIndex);
-			argsParameter = parameters[dotIndex + 1];
+		if (!parameters.isList) {
+			// (lambda x {body})
+			paramsList = [];
+			argsParameter = parameters;
 		} else {
-			paramsList = parameters;
-			argsParameter = false;
+			var dotIndex = parameters.lastIndexOf('.');
+			if (dotIndex != -1) {
+				// (lambda (a b . c) {body})
+				paramsList = parameters.slice(0, dotIndex);
+				argsParameter = parameters[dotIndex + 1];
+			} else {
+				// (lambda (a b) {body})
+				paramsList = parameters;
+				argsParameter = false;
+			}
 		}
 
 		return {
