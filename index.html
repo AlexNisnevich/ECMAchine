@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <title>ECMAchine</title>
-    <script src="js/jquery-1.7.1.min.js"></script>
-    <script src="js/jquery.mousewheel-min.js"></script>
-    <script src="js/jquery.terminal-0.4.7.js"></script>
-    <script src="js/es5-shim.min.js"></script>
+    <script src="js/lib/jquery-1.7.1.min.js"></script>
+    <script src="js/lib/jquery.mousewheel-min.js"></script>
+    <script src="js/lib/jquery.terminal-0.4.7-modified.js"></script>
+    <script src="js/lib/es5-shim.min.js"></script>
+    <script src="js/helpers.js"></script>
     <script src="js/environment.js"></script>
     <script src="js/evaluator.js"></script>
-    <script src="js/filesystem.js"></script>
+    <script src="js/os.js"></script>
+    <script src="js/primitives.js"></script>
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     <script>
     var terminal = null;
@@ -28,16 +30,16 @@
 			       terminalEcho('');
 			      }
 			}, {
-			      greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
-			    name: 'terminal',
-			    height: 200,
-			    prompt: 'ecmachine:/ guest$',
-			      onInit: function(term) {
-			      	terminal = term;
-			      	initEvaluator();
-			      	initFileSystem();
-			      	terminalResize();
-			      }
+		    greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
+		    name: 'terminal',
+		    height: 200,
+		    prompt: 'ecmachine:/ guest$',
+	      onInit: function(term) {
+	      	terminal = term;
+	      	initEvaluator();
+	      	Filesystem.initialize();
+	      	terminalResize();
+	      }
 			});
 		
 	    $('body').css('margin', '0');
