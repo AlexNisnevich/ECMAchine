@@ -167,9 +167,9 @@ var primitiveProcedures = {
 				'\n\t (file? [[i;;]path])               Returns whether there is a file at the given path' +
 				'\n\t (dir? [[i;;]path])                Returns whether there is a directory at the given path' +
 			'\nPower commands:' +
-				'\n\t (shutdown)                 Saves the filesystem and closes ECMAchine'
-				'\n\t (restart)                  Saves the filesystem and restarts ECMAchine'
-				'\n\t (reset-to-default)         Resets the filesystem to default configuration and restarts ECMAchine'
+				'\n\t (shutdown)                 Saves the filesystem and closes ECMAchine' +
+				'\n\t (restart)                  Saves the filesystem and restarts ECMAchine' +
+				'\n\t (reset-to-default)         Resets the filesystem to default configuration and restarts ECMAchine' +
 			'\nProcess commands:' +
 				'\n\t (processes)                Lists the PIDs and filenames of the currently running processes' +
 				'\n\t (start [[i;;]path interval])      Starts a LISP program from a file, with the specified refresh rate (in ms)' +
