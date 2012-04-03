@@ -1,5 +1,5 @@
 
-var fileSystemFrame = {
+var defaultFileSystemFrame = {
 	'__fileSystem': {
 		toString: function () { return '#<FileSystem>'},
 		'/': {

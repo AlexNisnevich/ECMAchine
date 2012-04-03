@@ -3,16 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <title>ECMAchine</title>
+    
     <script src="js/lib/jquery-1.7.1.min.js"></script>
     <script src="js/lib/jquery.mousewheel-min.js"></script>
     <script src="js/lib/jquery.terminal-0.4.7-modified.js"></script>
     <script src="js/lib/es5-shim.min.js"></script>
+    
     <script src="js/helpers.js"></script>
     <script src="js/environment.js"></script>
     <script src="js/evaluator.js"></script>
     <script src="js/os.js"></script>
     <script src="js/primitives.js"></script>
+    
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
+    
     <script>
     var terminal = null;
     
@@ -36,8 +40,7 @@
 		    prompt: 'ecmachine:/ guest$',
 	      onInit: function(term) {
 	      	terminal = term;
-	      	initEvaluator();
-	      	Filesystem.initialize();
+	      	OS.initialize();
 	      	terminalResize();
 	      }
 			});

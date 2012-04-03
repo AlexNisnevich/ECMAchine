@@ -142,7 +142,7 @@ var primitiveProcedures = {
 	},
 	
 	// ECMAchine general
-	'help': function (args) {
+	'help': function () {
 		return 'The following LISP commands are supported as primitives:' + 
 				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, let, let*, list, not, or, quote' + 
 			'\nThe following LISP commands are among those defined in the standard library (located in /startup):' + 
@@ -166,6 +166,10 @@ var primitiveProcedures = {
 				'\n\t (rm [[i;;]path])                  Removes a file or directory' +
 				'\n\t (file? [[i;;]path])               Returns whether there is a file at the given path' +
 				'\n\t (dir? [[i;;]path])                Returns whether there is a directory at the given path' +
+			'\nPower commands:' +
+				'\n\t (shutdown)                 Saves the filesystem and closes ECMAchine'
+				'\n\t (restart)                  Saves the filesystem and restarts ECMAchine'
+				'\n\t (reset-to-default)         Resets the filesystem to default configuration and restarts ECMAchine'
 			'\nProcess commands:' +
 				'\n\t (processes)                Lists the PIDs and filenames of the currently running processes' +
 				'\n\t (start [[i;;]path interval])      Starts a LISP program from a file, with the specified refresh rate (in ms)' +
@@ -180,6 +184,18 @@ var primitiveProcedures = {
 				'\n\t (do-nothing)               Dummy command' +
 				'\n\t (help)                     Displays this help screen'
 			;
+	},
+	'shutdown': function () {
+		OS.saveState();
+		OS.close();
+	},
+	'restart': function () {
+		OS.saveState();
+		OS.reboot();
+	},
+	'reset-to-default': function () {
+		OS.deleteSavedState();
+		OS.reboot();
 	},
 	'time': function (args) {
 		var date = new Date();

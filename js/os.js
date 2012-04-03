@@ -1,15 +1,61 @@
+/*
+ * The OS singleton performs power- and state-related operations
+ */
+var OS = {
+	initialize: function() {
+		terminalEcho("Launching ECMAchine ...");
+		initEvaluator();
+	  this.loadState();
+		Filesystem.initialize();
+		
+		// start automatically saving filesystem to localStorage every 60 sec
+		setInterval(OS.saveState, 60000);
+	},
+	
+	close: function() {
+		window.open('', '_self', ''); // Arthur Filliot's suggestion - allows window.close() to work in Chrome
+		window.close(); 
+	},
+	
+	reboot: function() {
+		location.reload(true);
+	},
+	
+	loadState: function() {
+		if (typeof localStorage != "undefined" && typeof localStorage.fileSystemFrame != "undefined") {
+			terminalEcho("Restoring filesystem state ...");
+			var fileSystemFrame = JSON.parse(localStorage.fileSystemFrame);
+	 } else {
+	 		var fileSystemFrame = defaultFileSystemFrame;
+	 }
+	 Filesystem.importFSFrame(fileSystemFrame);
+	},
+	
+	saveState: function() {
+		if (typeof localStorage != "undefined") {
+			localStorage.fileSystemFrame = JSON.stringify(Filesystem.exportFSFrame());
+	  }
+	},
+	
+	deleteSavedState: function() {
+		if (typeof localStorage != "undefined") {
+			delete localStorage.fileSystemFrame;
+	  }
+	}
+}
+
+/*
+ * The Filesystem singleton performs filesystem-related operations
+ */
 var Filesystem = {
-	fs: fileSystemFrame['__fileSystem'], // path to file system
+	fs: null, // path to file system
 	currentDir: '/', // current directory
 	
 	/*
-	 * Initializes filesystem (called from terminal's onInit)
+	 * Initializes filesystem (called from OS.initialize() )
 	 */
 	initialize: function() {
 		terminalEcho('Launching filesystem ...');
-	
-		// Add file system frame to environment
-		globalEnvironment.push(fileSystemFrame);
 		
 		// Run all files in /startup
 		for (var fname in Filesystem.getDir('/startup')) {
@@ -21,6 +67,17 @@ var Filesystem = {
 	//
 	// HELPER FUNCTIONS
 	//
+	
+	importFSFrame: function(fileSystemFrame) {
+		this.fs = fileSystemFrame['__fileSystem'];
+		
+		// Add file system frame to environment
+		globalEnvironment.push(fileSystemFrame);
+	},
+	
+	exportFSFrame: function() {
+		return {'__fileSystem': this.fs};
+	},
 		
 	/*
 	 * Gets new path (e.g. for 'cd' command)
