@@ -6,7 +6,7 @@
     
     <script src="js/lib/jquery-1.7.1.min.js"></script>
     <script src="js/lib/jquery.mousewheel-min.js"></script>
-    <script src="js/lib/jquery.terminal-0.4.7-modified.js"></script>
+    <script src="js/lib/jquery.terminal.js"></script>
     <script src="js/lib/es5-shim.min.js"></script>
     
     <script src="js/helpers.js"></script>
@@ -21,82 +21,95 @@
     var terminal = null;
     
     jQuery(document).ready(function($) {
-			$(document.documentElement).terminal(function(command, term) {
-				terminal = term;
-			    if (command !== '') {
-			  		var result = evaluate(command);
-			  		if (result !== undefined) {
-			          terminalEcho(String(result));
-			        } else {
-			       		terminalRefresh();
-			        }
-			    } else {
-			       terminalEcho('');
-			      }
-			}, {
-		    greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
-		    name: 'terminal',
-		    height: 200,
-		    prompt: 'ecmachine:/ guest$',
-	      onInit: function(term) {
-	      	terminal = term;
-	      	OS.initialize();
-	      	terminalResize();
-	      }
-			});
-		
-	    $('body').css('margin', '0');
-	    $('<div>').attr('id', 'overlays').appendTo('.terminal');
-	    
-	    $(window).resize(terminalRefresh);
-	});
-	
-	/*
-	 * Process and display output
-	 */
-	function terminalEcho(str) {
-		str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
-		terminal.echo(str);
-		terminalRefresh();
-	}
-	
-	/*
-	 * Resize terminal to avoid overlap with overlays
-	 */
-	function terminalResize() {
-		if ($('.overlayRight').length == 0) {
-			var newWidth = $(document).width() - 20;
-		} else {
-			var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
-		}
-		
-		if (terminal.width() != newWidth) {
-			terminal.resize(newWidth, terminal.height());
-		}
-	}
-	
-	/*
-	 * Refresh terminal: resize + scroll to bottom
-	 */
-	function terminalRefresh() {
-		// timeout needed to avoid some silly UI issues
-		setTimeout( function() { 
-			terminalResize();
-			$(document).scrollTop($(document).height());
-		}, 100);
-	}
+        $(document.documentElement).terminal(function(command, term) {
+                terminal = term;
+                if (command !== '') {
+                    var result = evaluate(command);
+                        if (result !== undefined) {
+                       terminalEcho(String(result));
+                    } else {
+                        terminalRefresh();
+                    }
+                } else {
+                    terminalEcho('');
+                }
+            }, {
+            greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
+            name: 'terminal',
+            height: 200,
+            prompt: 'ecmachine:/ guest$',
+            onInit: function(term) {
+                terminal = term;
+                OS.initialize();
+                terminalResize();
+            },
+            
+            // new options I've added to jquery-terminal
+            validator: function(command) {
+                return (command.split('(').length <= command.split(')').length);
+            },
+            onValidatorFail: function(command) {
+                terminal.set_command(command + '\n..  ');
+                terminalRefresh();
+            },
+            historycolors: {
+                'prompt': '#080',
+                'command': '#399'
+            }
+        });
+      
+        $('body').css('margin', '0');
+        $('<div>').attr('id', 'overlays').appendTo('.terminal');
+        
+        $(window).resize(terminalRefresh);
+    });
+    
+    /*
+     * Process and display output
+     */
+    function terminalEcho(str) {
+        str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+        terminal.echo(str);
+        terminalRefresh();
+    }
+    
+    /*
+     * Resize terminal to avoid overlap with overlays
+     */
+    function terminalResize() {
+        if ($('.overlayRight').length == 0) {
+            var newWidth = $(document).width() - 20;
+        } else {
+            var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
+        }
+        
+        if (terminal.width() != newWidth) {
+            terminal.resize(newWidth, terminal.height());
+        }
+    }
+    
+    /*
+     * Refresh terminal: resize + scroll to bottom
+     */
+    function terminalRefresh() {
+        // timeout needed to avoid some silly UI issues
+        setTimeout( function() { 
+            terminalResize();
+            $(document).scrollTop($(document).height());
+        }, 100);
+    }
   </script>
   <script type="text/javascript">
-	  var _gaq = _gaq || [];
- 	 _gaq.push(['_setAccount', 'UA-345959-10']);
- 	 _gaq.push(['_trackPageview']);
-	
-  	(function() {
-    	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  	})();
-	</script>
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-345959-10']);
+      _gaq.push(['_trackPageview']);
+    
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </head>
 <body>
 </body>
