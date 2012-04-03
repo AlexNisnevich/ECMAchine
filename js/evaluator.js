@@ -318,11 +318,20 @@ function lispEval(exp, env) {
 		}
 	}
 	function makeProcedure(parameters, body, environment) {
-		var paramsList = []; for (var i = 0; i < arguments.length; i++) { paramsList.push(arguments[i]); } // a necessary evil
+		var paramsList, argsParameter;
+		var dotIndex = parameters.lastIndexOf('.');
+		if (dotIndex != -1) {
+			paramsList = parameters.slice(0, dotIndex);
+			argsParameter = parameters[dotIndex + 1];
+		} else {
+			paramsList = parameters;
+			argsParameter = false;
+		}
 
 		return {
 			'lambda': true,
-			'parameters': parameters,
+			'parameters': paramsList,
+			'argsParameter': argsParameter,
 			'body': body,
 			'environment': environment,
 			toString: function () {
@@ -377,8 +386,17 @@ function lispApply(procedure, arguments) {
 	if (isPrimitiveProcedure(procedure)) {
 		return applyPrimitiveProcedure(procedure, arguments);
 	} else if (isCompoundProcedure(procedure)) {
-		return evalSequence(procedure.body,
-				extendEnvironment(procedure.parameters, arguments, procedure.environment));
+		var params = clone(procedure.parameters);
+		var args = arguments;
+		
+		if (procedure.argsParameter !== false) {
+			// there is an args parameter - assign remaining arguments to it
+			params.push(procedure.argsParameter);
+			args = args.slice(0, procedure.parameters.length);
+			args.push(arguments.slice(procedure.parameters.length, arguments.length))
+		}
+		var newEnvironment = extendEnvironment(params, args, procedure.environment);
+		return evalSequence(procedure.body, newEnvironment);
 	} else {
 		throw "Apply Error: Unknown procedure type: " + procedure;
 	}
