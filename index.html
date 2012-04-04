@@ -28,7 +28,9 @@
                     // incomplete expression - remove from lines and history
                     terminal.set_command(command + '\n..  ');
                     terminal.lines(terminal.lines().slice(0,-1));
-                    terminal.get_history().pop();
+                    for (i = 1; i < command.split(/\n/).length; i++) {
+                    	terminal.get_history().pop(); // need to pop once for each line after the first
+                    }
                     terminal.resize();
                 } else {
                     var result = evaluate(command);
