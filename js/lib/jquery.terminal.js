@@ -755,6 +755,9 @@ function get_stack(caller) {
             append: function(item) {
                 data.push(item);
                 this.reset();
+            },
+            pop: function() {
+                return data.pop();
             }
         });
     }
@@ -866,6 +869,12 @@ function get_stack(caller) {
                     $.Storage.set(name + 'commands', $.json_stringify(bc.data()));
                 }
             },
+            pop: function() {
+                if (enabled) {
+                    bc.pop();
+                    $.Storage.set(name + 'commands', $.json_stringify(bc.data()));
+                }
+            },
             data: function() {
                 return bc.data();
             },
@@ -912,9 +921,6 @@ function get_stack(caller) {
         var name, history;
         var cursor = self.find('.cursor');
         
-        var validator = options.validator;
-        var onValidatorFail = options.onValidatorFail;
-
         function blink(i) {
             cursor.toggleClass('inverted');
         }
@@ -1138,12 +1144,6 @@ function get_stack(caller) {
                     }
                     return true;
                 } else if (e.keyCode == 13) { //enter
-                    if (validator && validator(command) === false) { 
-                        // invalid command
-                        onValidatorFail(command);
-                        return;
-                    }
-                
                     if (history && command) {
                         history.append(command);
                     }
@@ -1304,7 +1304,7 @@ function get_stack(caller) {
                 }
             },
             history: function() {
-                return history;
+            	  return history;
             },
             set: function(string, stay) {
                 if (string !== undefined) {
@@ -1747,7 +1747,8 @@ function get_stack(caller) {
             clear: function() {
                 output.html('');
                 command_line.set('');
-                lines = [];
+                lin
+                es = [];
                 self.attr({ scrollTop: 0});
                 return self;
             },
@@ -1780,6 +1781,15 @@ function get_stack(caller) {
             },
             history: function() {
                 return command_line.history().data();
+            },
+            get_history: function() {
+                return command_line.history();
+            },
+            lines: function() {
+                if (arguments.length > 0) {
+                  lines = arguments[0];
+                }
+                return lines;
             },
             next: function() {
                 if (terminals.length() == 1) {
@@ -2375,10 +2385,7 @@ function get_stack(caller) {
                 keypress: settings.keypress ? function(e) {
                     return settings.keypress(e, self);
                 } : null,
-                commands: commands,
-                
-                validator: settings.validator,
-                onValidatorFail: settings.onValidatorFail
+                commands: commands
             });
             self.livequery(function() {
                 self.resize();

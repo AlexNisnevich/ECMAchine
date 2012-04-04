@@ -22,18 +22,26 @@
     
     jQuery(document).ready(function($) {
         $(document.documentElement).terminal(function(command, term) {
-                terminal = term;
-                if (command !== '') {
+            terminal = term;
+            if (command !== '') {
+                if (command.split('(').length > command.split(')').length) {
+                    // incomplete expression - remove from lines and history
+                    terminal.set_command(command + '\n..  ');
+                    terminal.lines(terminal.lines().slice(0,-1));
+                    terminal.get_history().pop();
+                    terminal.resize();
+                } else {
                     var result = evaluate(command);
-                        if (result !== undefined) {
+                    if (result !== undefined) {
                        terminalEcho(String(result));
                     } else {
                         terminalRefresh();
                     }
-                } else {
-                    terminalEcho('');
                 }
-            }, {
+            } else {
+                terminalEcho('');
+            }
+        }, {
             greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
             name: 'terminal',
             height: 200,
@@ -44,14 +52,7 @@
                 terminalResize();
             },
             
-            // new options I've added to jquery-terminal
-            validator: function(command) {
-                return (command.split('(').length <= command.split(')').length);
-            },
-            onValidatorFail: function(command) {
-                terminal.set_command(command + '\n..  ');
-                terminalRefresh();
-            },
+            // custom options
             historycolors: {
                 'prompt': '#080',
                 'command': '#399'
