@@ -47,3 +47,10 @@ Pair.prototype.car = function () {
 Pair.prototype.cdr = function () {
 	return this.contents[1];
 }
+
+/*
+ * String class
+ */
+String.prototype.toTerminalString = function() {
+	return '"' + this.toString() + '"';
+}

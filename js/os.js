@@ -56,10 +56,24 @@ var Display = {
   },
   
   /*
+   * Preprocesses display output
+   */
+  preprocess: function(str) {
+  	console.log(str.isString);
+  	if (str.isString) {
+  		str = str.toTerminalString();
+  	} else {
+  		str = str.toString();
+  	}
+  	str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+  	return str;
+  },
+  
+  /*
    * Process and display output
    */
   echo: function(str) {
-    str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+    str = this.preprocess(str);
     this.terminal.echo(str);
     this.refresh();
   },

@@ -23,15 +23,15 @@ var primitiveProcedures = {
 	},
 	'js-apply': function(args) {
 		function prepareArg(arg, isObj) {
-			if (typeof arg == 'object') { 
+			if (typeof arg == 'string' || arg.isString) {
+				arg = "'" + arg + "'";
+			} else if (typeof arg == 'object') { 
 				arg = arg.map(function (elt) {
 					return prepareArg(elt);
 				}).join(','); 
 				if (isObj) {
 					arg = '[' + arg + ']';
 				}
-			} else if (typeof arg == 'string') {
-				arg = "'" + arg + "'";
 			}
 			return arg;
 		}
@@ -326,5 +326,17 @@ var primitiveProcedures = {
 		
 		Processes.registerOverlay(name); // if called from process, attach overlay name to PID
 		return;
+	},
+	
+	'$': function (args) {
+		var func = null;
+		if (args.length > 1) {
+			var func = args[0];
+			args = args.slice(1);
+		}
+		
+		var result = $[func][args];
+		
+		return result;
 	}
 };

@@ -58,24 +58,27 @@ function parse(sexp) {
 	var tokenize = function(sexp) {
     var sexp = sexp.substring(1, sexp.length-1);
     var openParens = 0;
+    var openQuote = false;
  		var tokens = [];
-		var currentToken = '';                                        
-        for (var i = 0; i < sexp.length; i++) {
-        	if (sexp[i] == ' ' && openParens == 0) {
-        		tokens.push(currentToken);
-                currentToken = '';
-        	} else {
-        		currentToken += sexp[i];
-        		if (sexp[i] == '(') {
-        			openParens++;
-        		} else if (sexp[i] == ')') {
-        			openParens--;
-        		}
-        	}
-        }
+		var currentToken = '';
+    for (var i = 0; i < sexp.length; i++) {
+    	if (sexp[i] == ' ' && openParens == 0 && !openQuote) {
+    		tokens.push(currentToken);
+        currentToken = '';
+    	} else {
+    		currentToken += sexp[i];
+    		if (sexp[i] == '(') {
+    			openParens++;
+    		} else if (sexp[i] == ')') {
+    			openParens--;
+    		} else if (sexp[i] == '"') {
+    			openQuote = !openQuote;
+    		}
+    	}
+    }
 		tokens.push(currentToken);        
-    	return tokens;
-    };
+    return tokens;
+  };
     
   // do ( and ) match?
 	if (sexp.split('(').length != sexp.split(')').length) { 
@@ -177,6 +180,9 @@ function lispEval(exp, env) {
 	function isQuoted(exp) {
 		return (typeof exp == 'string' && exp[0] == "'") || isTaggedList(exp, 'quote');
 	}
+	function isString(exp) {
+		return typeof exp == 'string' && exp[0] == '"' && exp.slice(-1) == '"';
+	}
 	function isAssignment(exp) {
 		return isTaggedList(exp, 'set!');
 	}
@@ -227,6 +233,11 @@ function lispEval(exp, env) {
 			// quoted list or string literal
 			return quotedElt;
 		}
+	}
+	function getString(exp) {
+		var str = new String(exp.slice(1,-1));
+		str.isString = true;
+		return str;
 	}
 	function listOfValues(exps, env) {
 		return exps.map(function (exp) {
@@ -325,8 +336,10 @@ function lispEval(exp, env) {
 		return exp;
 	} else if (isBoolean(exp)) {
 		return getBooleanValue(exp);
-	}else if (isQuoted(exp)) {
+	} else if (isQuoted(exp)) {
 		return textOfQuotation(exp);
+	} else if (isString(exp)) {
+		return getString(exp);
 	} else if (isVariable(exp)) {
 		return lookupVariableValue(exp, env)
 	} else if (isAssignment(exp)) {
