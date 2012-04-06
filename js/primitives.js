@@ -126,6 +126,10 @@ var primitiveProcedures = {
 	'newline': function () {
 		return '\n';
 	},
+	'display': function (args) {
+		Display.echo(args[0]);
+		return;
+	},
 	'sort': function (args) {
 		// This doesn't NEED to be a primitive, but it's a pain to implement,
 		// and I'd rather use JavaScript's underlying sort

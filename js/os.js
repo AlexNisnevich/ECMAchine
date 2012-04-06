@@ -59,7 +59,9 @@ var Display = {
    * Preprocesses display output
    */
   preprocess: function(str) {
-  	if (str.isString) {
+  	if (!str) {
+  		return null;
+  	} else if (str.isString) {
   		str = str.toDisplayString();
   	} else {
   		str = str.toString();
@@ -73,8 +75,10 @@ var Display = {
    */
   echo: function(str) {
     str = this.preprocess(str);
-    this.terminal.echo(str);
-    this.refresh();
+    if (str != null) {
+    	this.terminal.echo(str);
+    	this.refresh();
+    }
   },
   
   /*

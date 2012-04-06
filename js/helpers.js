@@ -16,7 +16,9 @@ function clone(obj){
 Array.prototype.isList = true;
 Array.prototype.toDisplayArray = function() {
 	return this.map(function (elt) {
-		if (elt.isString) {
+		if (!elt) {
+			return '#<undef>';
+		} else if (elt.isString) {
   		return elt.toDisplayString();
 	  } else {
 	  	return elt;
