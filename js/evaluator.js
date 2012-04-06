@@ -30,7 +30,7 @@ function evalSequence(exps, env) {
  */
 
 function initEvaluator() {
-	terminalEcho('Launching LISP evaluator ...');
+	Display.echo('Launching LISP evaluator ...');
   for (var primitive in primitiveProcedures) {
       globalFrame[primitive] = {
           'primitive': true,

@@ -18,30 +18,22 @@
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
     
     <script>
-    var terminal = null;
-    
     jQuery(document).ready(function($) {
         $(document.documentElement).terminal(function(command, term) {
-            terminal = term;
             if (command !== '') {
                 if (command.split('(').length > command.split(')').length) {
                     // incomplete expression - remove from lines and history
-                    terminal.set_command(command + '\n..  '); // start new line in command
-                    terminal.lines(terminal.lines().slice(0,-1)); // remove last line in output
-                    for (i = 1; i < command.split(/\n/).length; i++) {
-                      terminal.get_history().pop(); // need to pop once for each line after the first
-                    }
-                    terminal.resize(); // refresh terminal
+                    Display.newline(command);
                 } else {
                     var result = evaluate(command);
                     if (result !== undefined) {
-                       terminalEcho(String(result));
+                        Display.echo(String(result));
                     } else {
-                        terminalRefresh();
+                        Display.refresh();
                     }
                 }
             } else {
-                terminalEcho('');
+                Display.echo('');
             }
         }, {
             greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
@@ -51,9 +43,9 @@
             onInit: function(term) {
                 $('body').css('margin', '0');
 				        $('<div>').attr('id', 'overlays').appendTo('.terminal');
-				        terminal = term;
+				        Display.initialize(term);
                 OS.initialize();
-                terminalResize();
+                Display.resize();
             },
             
             // custom options
@@ -63,45 +55,10 @@
             }
         });
       
-        $(window).resize(terminalRefresh);
+        $(window).resize(Display.refresh);
     });
-    
-    /*
-     * Process and display output
-     */
-    function terminalEcho(str) {
-        str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
-        terminal.echo(str);
-        terminalRefresh();
-    }
-    
-    /*
-     * Resize terminal to avoid overlap with overlays
-     */
-    function terminalResize() {
-        if ($('.overlayRight').length == 0) {
-            var newWidth = $(document).width() - 20;
-        } else {
-            var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
-        }
-        
-        if (terminal.width() != newWidth) {
-            terminal.resize(newWidth, terminal.height());
-        }
-    }
-    
-    /*
-     * Refresh terminal: resize + scroll to bottom
-     */
-    function terminalRefresh() {
-        // timeout needed to avoid some silly UI issues
-        setTimeout( function() { 
-            terminalResize();
-            $(document).scrollTop($(document).height());
-        }, 100);
-    }
-  </script>
-  <script type="text/javascript">
+	  </script>
+	  <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-345959-10']);
       _gaq.push(['_trackPageview']);

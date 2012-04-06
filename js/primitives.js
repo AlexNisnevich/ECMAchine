@@ -296,7 +296,7 @@ var primitiveProcedures = {
 		var interval = setInterval(function () {
 			var result = evaluate(contents, pid);
 			if (result !== undefined) {
-				terminalEcho(result);
+				Display.echo(result);
 			}
 		}, args[1]);
 		
@@ -316,7 +316,7 @@ var primitiveProcedures = {
 		});
 		
 		// and run it once right now
-		terminalEcho(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
+		Display.echo(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
 		return evaluate(contents, pid);
 	},
 	'peek': function (args) {

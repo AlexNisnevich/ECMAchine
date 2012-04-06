@@ -1780,9 +1780,6 @@ function get_stack(caller) {
                 return lines.length;
             },
             history: function() {
-                return command_line.history().data();
-            },
-            get_history: function() {
                 return command_line.history();
             },
             lines: function() {
