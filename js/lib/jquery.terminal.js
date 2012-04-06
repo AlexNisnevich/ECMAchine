@@ -2376,7 +2376,6 @@ function get_stack(caller) {
                 command_list: command_list,
                 greetings: settings.greetings
             });
-            console.log(settings);
             var command_line = self.find('.terminal-output').next().cmd({
                 prompt: settings.prompt,
                 history: settings.history,

@@ -26,12 +26,12 @@
             if (command !== '') {
                 if (command.split('(').length > command.split(')').length) {
                     // incomplete expression - remove from lines and history
-                    terminal.set_command(command + '\n..  ');
-                    terminal.lines(terminal.lines().slice(0,-1));
+                    terminal.set_command(command + '\n..  '); // start new line in command
+                    terminal.lines(terminal.lines().slice(0,-1)); // remove last line in output
                     for (i = 1; i < command.split(/\n/).length; i++) {
-                    	terminal.get_history().pop(); // need to pop once for each line after the first
+                      terminal.get_history().pop(); // need to pop once for each line after the first
                     }
-                    terminal.resize();
+                    terminal.resize(); // refresh terminal
                 } else {
                     var result = evaluate(command);
                     if (result !== undefined) {
@@ -49,7 +49,9 @@
             height: 200,
             prompt: 'ecmachine:/ guest$',
             onInit: function(term) {
-                terminal = term;
+                $('body').css('margin', '0');
+				        $('<div>').attr('id', 'overlays').appendTo('.terminal');
+				        terminal = term;
                 OS.initialize();
                 terminalResize();
             },
@@ -61,9 +63,6 @@
             }
         });
       
-        $('body').css('margin', '0');
-        $('<div>').attr('id', 'overlays').appendTo('.terminal');
-        
         $(window).resize(terminalRefresh);
     });
     
