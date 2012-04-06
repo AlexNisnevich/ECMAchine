@@ -59,9 +59,8 @@ var Display = {
    * Preprocesses display output
    */
   preprocess: function(str) {
-  	console.log(str.isString);
   	if (str.isString) {
-  		str = str.toTerminalString();
+  		str = str.toDisplayString();
   	} else {
   		str = str.toString();
   	}

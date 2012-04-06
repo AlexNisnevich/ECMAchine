@@ -14,12 +14,21 @@ function clone(obj){
  * Array class (used for linked lists)
  */
 Array.prototype.isList = true;
+Array.prototype.toDisplayArray = function() {
+	return this.map(function (elt) {
+		if (elt.isString) {
+  		return elt.toDisplayString();
+	  } else {
+	  	return elt;
+	  }
+	});
+}
 Array.prototype.toString = function() {
-	var sexp = '(' + this.join(' ') + ')';
+	var sexp = '(' + this.toDisplayArray().join(' ') + ')';
 	return sexp;
 };
 Array.prototype.toStringNoOuterBraces = function() {
-	var sexp = this.join(' ');
+	var sexp = this.toDisplayArray().join(' ');
 	return sexp;
 };
 Array.prototype.car = function () {
@@ -38,7 +47,7 @@ var Pair = function(car, cdr) {
 	this.length = 2;
 }
 Pair.prototype.toString = function() {
-	var sexp = '(' + this.contents.join(' . ') + ')';
+	var sexp = '(' + this.contents.toDisplayArray().join(' . ') + ')';
 	return sexp;
 }
 Pair.prototype.car = function () {
@@ -51,6 +60,10 @@ Pair.prototype.cdr = function () {
 /*
  * String class
  */
-String.prototype.toTerminalString = function() {
-	return '"' + this.toString() + '"';
+String.prototype.toDisplayString = function() {
+	if (this.isString) {
+		return '"' + this.toString() + '"';
+	} else {
+		return this.toString();
+	}
 }
