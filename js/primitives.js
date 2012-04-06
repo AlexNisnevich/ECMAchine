@@ -53,7 +53,7 @@ var primitiveProcedures = {
 	// Arithmetic
 	'+': function(args) {
 		args = args.map(function (arg) {
-			if (typeof arg == 'string') { // this lets us overload + for string concatenation
+			if (typeof arg == 'string' || arg.isString) { // this lets us overload + for string concatenation
 				return '"' + arg + '"';
 			} else {
 				return arg;
