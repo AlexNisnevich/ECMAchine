@@ -69,9 +69,8 @@ var Display = {
    */
   refresh: function() {
     // timeout needed to avoid some silly UI issues
-    var term = this.terminal;
     setTimeout( function() { 
-      term.resize();
+      Display.terminal.resize();
       $(document).scrollTop($(document).height());
     }, 100);
   },
