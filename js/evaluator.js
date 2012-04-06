@@ -6,15 +6,6 @@
 var globalEnvironment = [];
 var globalFrame = {};
 
-var processes = [];
-var currentPID = null;
-var terminalProcess = {
-	// Performance
-	'timeStarted': new Date().getTime(),
-	'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
-	'evals': 0
-};
-
 /*
  * (used by both eval and apply)
  */
@@ -45,11 +36,7 @@ function initEvaluator() {
 }
 
 function evaluate(command, pid) {
-	if (pid !== undefined) {
-		currentPID = pid;
-	} else {
-		currentPID = null;
-	}
+	Processes.setCurrentPID(pid);
 	command = '(begin ' + command + ')';
 	return lispEval(parse(command), globalEnvironment);
 }
@@ -170,14 +157,9 @@ function defineVariable(variable, val, env) {
  * Evaluates an expression in the given environment
  */
 function lispEval(exp, env) {
-	// console.log('Evaluating: ' + exp + ' (Process ' + currentPID + ')');
+	// console.log('Evaluating: ' + exp + ' (Process ' + Processes.currentPID + ')');
 
-	if (currentPID !== null) {
-		var process = processes[currentPID];
-	} else {
-		var process = terminalProcess;
-	}
-	process.evals++;
+	Processes.incrementEvals();
 	
 	// Detectors
 	function isSelfEvaluating(exp) { 

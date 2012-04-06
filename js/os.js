@@ -59,7 +59,7 @@ var Display = {
    * Process and display output
    */
   echo: function(str) {
-    str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+    str = str.toString().replace(/lambda/g, '&lambda;').replace(  rue/g, '#t').replace(/false/g, '#f');
     this.terminal.echo(str);
     this.refresh();
   },
@@ -388,3 +388,132 @@ var Filesystem = {
     };
   }
 };
+
+/*
+ * The Processes singleton handles processes
+ */
+var Processes = {
+	processList: [],
+	currentPID: null,
+	
+	terminalProcess: {
+		'pid': -1,
+		'name': 'Terminal',
+		'isTerminal': true,
+		
+		// Performance
+		'timeStarted': new Date().getTime(),
+		'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
+		'evals': 0
+	},
+	
+	getProcessByID: function(pid) {
+		if (pid == -1 || pid == null) {
+			return this.terminalProcess;
+		} else if (this.processList[pid] === undefined || this.processList[pid].terminated) {
+			throw 'There is no process with PID ' + args[0];
+		} else {
+			return this.processList[pid];
+		}
+	},
+	
+	getCurrentProcess: function() {
+		return this.getProcessByID(this.currentPID);
+	},
+	
+	setCurrentPID: function(pid) {
+		if (pid !== undefined) {
+			Processes.currentPID = pid;
+		} else {
+			Processes.currentPID = null;
+		}
+	},
+	
+	/*
+	 * Increments the evals count of the current process
+	 */
+	incrementEvals: function() {
+		var process = this.getCurrentProcess();
+		process.evals++;
+	},
+	
+	/*
+	 * Starts a new process, returns its PID
+	 */
+	startProcess: function(name, contents, refreshRate) {
+		var pid = this.processList.length;
+		
+		// start interval
+		var interval = setInterval(function () {
+			var result = evaluate(contents, pid);
+			if (result !== undefined) {
+				Display.echo(result);
+			}
+		}, refreshRate);
+		
+		// add to process list
+		this.processList.push({
+			'pid': pid,
+			'name': Filesystem.getNameFromPath(name),
+			'process': interval,
+			'code': contents,
+			'terminated': false,
+			'overlays': [],
+			
+			// Performance
+			'timeStarted': new Date().getTime(),
+			'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
+			'interval': refreshRate,
+			'evals': 0
+		});
+		
+		return pid;
+	},
+	
+	/*
+	 * Kills a process by PID, returns result
+	 */
+	killProcess: function(pid) {
+		var proc = this.getProcessByID(pid);
+		if (proc.isTerminal) {
+			throw 'Can\'t kill terminal';
+		}
+		clearInterval(proc.process);
+		proc.terminated = true;
+		
+		// remove associated overlays
+		proc.overlays.forEach(function (name) {
+			$('#overlays #' + name).remove();}
+		);
+		
+		return new Array('Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated');
+	},
+	
+	/*
+	 * Returns a list of running processes
+	 */
+	listProcesses: function() {
+		var procs = this.processList.filter(function (proc) {return !proc.terminated});
+		procs.unshift(this.terminalProcess);
+		return procs;
+	},
+	
+	/*
+	 * Returns the evals/sec performance of a process by PID
+	 */
+	getPerformance: function(pid) {
+		var proc = this.getProcessByID(pid);
+		var evalsPerMS = proc.evals / (proc.timeElapsed());
+		var evalsPerSec = Math.round(evalsPerMS * 1000000)/1000;
+		return evalsPerSec;
+	},
+	
+	/*
+	 * Registers a named overlay as belonging to the current process
+	 */
+	registerOverlay: function(name) {
+		if (this.currentPID != null && this.getProcessByID(this.currentPID).overlays.indexOf(name) < 0) {
+			this.getProcessByID(this.currentPID).overlays.push(name);
+		}
+	}
+}

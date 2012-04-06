@@ -278,79 +278,29 @@ var primitiveProcedures = {
 	
 	// Processes
 	'processes': function (args) {
-		var procs = [[-1, 'Terminal']];
-		for (var pid = 0; pid < processes.length; pid++) {
-			if (!processes[pid].terminated) {
-				procs.push(new Array(pid, processes[pid].name));
-			}
-		}
-		return procs;
+		return Processes.listProcesses().map(function (proc) {
+			return new Array(proc.pid, proc.name);
+		});
 	},
 	'start': function (args) {
-		// get program
 		var contents = Filesystem.readFile(args[0]);
-		
-		var pid = processes.length;
-		
-		// start interval
-		var interval = setInterval(function () {
-			var result = evaluate(contents, pid);
-			if (result !== undefined) {
-				Display.echo(result);
-			}
-		}, args[1]);
-		
-		// add to process list
-		processes.push({
-			'name': Filesystem.getNameFromPath(args[0]),
-			'process': interval,
-			'code': contents,
-			'terminated': false,
-			'overlays': [],
-			
-			// Performance
-			'timeStarted': new Date().getTime(),
-			'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
-			'interval': args[1],
-			'evals': 0
-		});
-		
-		// and run it once right now
+		var pid = Processes.startProcess(args[0], contents, args[1]);
 		Display.echo(new Array('Starting process at ' + args[0] + ' with PID ' + pid));
 		return evaluate(contents, pid);
 	},
 	'peek': function (args) {
-		if (args[0] == -1) {
-			return '#<Terminal>'
-		} else if (processes[args[0]] === undefined || processes[args[0]].terminated) {
-			throw 'There is no process with PID ' + args[0];
+		var process = Processes.getProcessByID(pid);
+		if (process.isTerminal) {
+			return '#<Terminal>';
+		} else {
+			return process.code;
 		}
-		return processes[args[0]].code;
 	},
 	'performance': function (args) {
-		if (args[0] == -1) {
-			var proc = terminalProcess;
-		} else {
-			if (processes[args[0]] === undefined || processes[args[0]].terminated) {
-				throw 'There is no process with PID ' + args[0];
-			}
-			var proc = processes[args[0]];
-		}
-		
-		var evalsPerMS = proc.evals / (proc.timeElapsed());
-		var evalsPerSec = Math.round(evalsPerMS * 1000000)/1000;
-		return evalsPerSec;
+		return Processes.getPerformance(args[0]);
 	},
 	'kill': function (args) {
-		if (args[0] == -1) {
-			throw 'Can\'t kill terminal';
-		} if (processes[args[0]] === undefined || processes[args[0]].terminated) {
-			throw 'There is no process with PID ' + args[0];
-		}
-		clearInterval(processes[args[0]].process);
-		processes[args[0]].terminated = true;
-		processes[args[0]].overlays.forEach(function (name) {$('#overlays #' + name).remove();}); // remove associated overlays
-		return new Array('Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated');
+		return Processes.killProcess(args[0]);
 	},
 	'overlay': function (args) {
 		// (overlay txt x y id)
@@ -374,11 +324,7 @@ var primitiveProcedures = {
 			overlay.css('bottom', -y);
 		}
 		
-		// if called from process, attach overlay name to PID
-		if (currentPID != null && processes[currentPID].overlays.indexOf(name) < 0) {
-			processes[currentPID].overlays.push(name);
-		}
-		
+		Processes.registerOverlay(name); // if called from process, attach overlay name to PID
 		return;
 	}
 };
