@@ -410,7 +410,7 @@ var Processes = {
 		if (pid == -1 || pid == null) {
 			return this.terminalProcess;
 		} else if (this.processList[pid] === undefined || this.processList[pid].terminated) {
-			throw 'There is no process with PID ' + args[0];
+			throw 'There is no process with PID ' + pid;
 		} else {
 			return this.processList[pid];
 		}
@@ -485,7 +485,7 @@ var Processes = {
 			$('#overlays #' + name).remove();}
 		);
 		
-		return new Array('Process with PID ' + args[0] + ' [' + processes[args[0]].name + '] terminated');
+		return new Array('Process with PID ' + pid + ' [' + proc.name + '] terminated');
 	},
 	
 	/*
