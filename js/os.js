@@ -59,7 +59,7 @@ var Display = {
    * Process and display output
    */
   echo: function(str) {
-    str = str.toString().replace(/lambda/g, '&lambda;').replace(  rue/g, '#t').replace(/false/g, '#f');
+    str = str.toString().replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
     this.terminal.echo(str);
     this.refresh();
   },
