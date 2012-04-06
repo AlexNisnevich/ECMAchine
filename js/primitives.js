@@ -329,13 +329,36 @@ var primitiveProcedures = {
 	},
 	
 	'$': function (args) {
+		// preprocess args
+		args = args.map(function(arg) {
+			if (arg.isString) {
+				return arg.toString();
+			} else {
+				return arg;
+			}
+		})
+		
+		// prepare function
 		var func = null;
 		if (args.length > 1) {
 			var func = args[0];
 			args = args.slice(1);
 		}
+		console.log(func);
+		console.log(args);
 		
-		var result = $[func][args];
+		// run function
+		if (func) {
+			var result = $[func].apply(this, args);
+		} else {
+			var result = $.apply(this, args);
+		}
+		console.log(result);
+		
+		// process result
+		if (typeof result == 'object') {
+			result = $.makeArray(result);
+		}
 		
 		return result;
 	}
