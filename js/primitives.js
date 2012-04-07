@@ -52,14 +52,23 @@ var primitiveProcedures = {
 	
 	// Arithmetic
 	'+': function(args) {
+		var string = false;
 		args = args.map(function (arg) {
-			if (typeof arg == 'string' || arg.isString) { // this lets us overload + for string concatenation
+			if (arg.isString) { // string concatenation
+				string = true;
+				return str = '"' + arg + '"';
+			} else if (typeof arg == 'string') { // quoted literal concatenation
 				return '"' + arg + '"';
 			} else {
 				return arg;
 			}
-		})
-		return eval(args.join('+'));
+		});
+		
+		result = eval(args.join('+'));
+		if (string) {
+			result = constructString(result);
+		}
+		return result;
 	},
 	'-': function(args) {
 		if (args.length == 1) {

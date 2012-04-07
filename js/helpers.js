@@ -69,3 +69,10 @@ String.prototype.toDisplayString = function() {
 		return this.toString();
 	}
 }
+
+function constructString(str) {
+	var newStr = new String(str);
+	newStr.isString = true;
+	return newStr;
+}
+

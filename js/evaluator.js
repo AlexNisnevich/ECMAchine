@@ -235,9 +235,7 @@ function lispEval(exp, env) {
 		}
 	}
 	function getString(exp) {
-		var str = new String(exp.slice(1,-1));
-		str.isString = true;
-		return str;
+		return constructString(exp.slice(1,-1));
 	}
 	function listOfValues(exps, env) {
 		return exps.map(function (exp) {
