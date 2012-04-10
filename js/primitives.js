@@ -302,7 +302,7 @@ var primitiveProcedures = {
 		return evaluate(contents, pid);
 	},
 	'peek': function (args) {
-		var process = Processes.getProcessByID(pid);
+		var process = Processes.getProcessByID(args[0]);
 		if (process.isTerminal) {
 			return '#<Terminal>';
 		} else {
