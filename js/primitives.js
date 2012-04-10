@@ -24,7 +24,7 @@ var primitiveProcedures = {
 	'js-apply': function(args) {
 		function prepareArg(arg, isObj) {
 			if (typeof arg == 'string' || arg.isString) {
-				arg = "'" + arg + "'";
+				arg = "'" + arg.replace(/[\n\r]/g, "\\n") + "'";
 			} else if (typeof arg == 'object') { 
 				arg = arg.map(function (elt) {
 					return prepareArg(elt);
@@ -56,14 +56,15 @@ var primitiveProcedures = {
 		args = args.map(function (arg) {
 			if (arg.isString) { // string concatenation
 				string = true;
-				return str = '"' + arg + '"';
+				return '"' + arg.replace(/[\n\r]/g, "\\n") + '"';
 			} else if (typeof arg == 'string') { // quoted literal concatenation
-				return '"' + arg + '"';
+				return '"' + arg.replace(/[\n\r]/g, "\\n") + '"';
 			} else {
 				return arg;
 			}
 		});
 		
+		console.log(args);
 		result = eval(args.join('+'));
 		if (string) {
 			result = constructString(result);
