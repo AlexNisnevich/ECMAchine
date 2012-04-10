@@ -21,7 +21,7 @@
     jQuery(document).ready(function($) {
         $(document.documentElement).terminal(function(command, term) {
             if (command !== '') {
-                if (command.split('(').length > command.split(')').length) {
+                if ((command.split('(').length > command.split(')').length) || (command.split('"').length + 1) % 2 == 1) {
                     // incomplete expression - remove from lines and history
                     Display.newline(command);
                 } else {

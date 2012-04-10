@@ -341,6 +341,25 @@ var primitiveProcedures = {
 		return;
 	},
 	
+	// experimental
+	
+	'ajax': function (args) {
+		var url = 'lib/ba-simple-proxy.php?url=' + args[0];
+		
+		var data_arr = args[1];
+		var data = data_arr.map(function(elt) {
+			return elt.car() + '=' + elt.cdr().toString();
+		}).join('&'); // send data as string rather than object, so that it's not preprocessed
+		
+		var callback = args[2];
+		
+		$.post(url, data, function (result) {
+			var contents = result.contents.split('\r\n\r\n')[1];
+			Display.echo(lispApply(callback, new Array(contents)));
+		});
+		return;
+	},
+	
 	'$': function (args) {
 		// preprocess args
 		args = args.map(function(arg) {
