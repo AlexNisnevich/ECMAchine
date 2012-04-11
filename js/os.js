@@ -117,6 +117,12 @@ var Display = {
       this.terminal.history().pop(); // need to pop once for each line after the first
     }
     this.terminal.resize(); // refresh terminal
+  },
+  
+  debugPrint: function(txt) {
+  	if (Processes.getCurrentProcess().isTerminal) {
+  		console.log(txt);
+  	}
   }
 }
 

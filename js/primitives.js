@@ -64,7 +64,6 @@ var primitiveProcedures = {
 			}
 		});
 		
-		console.log(args);
 		result = eval(args.join('+'));
 		if (string) {
 			result = constructString(result);

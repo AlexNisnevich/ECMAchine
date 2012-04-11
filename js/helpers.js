@@ -2,12 +2,16 @@
  * Clones an object
  */
 function clone(obj){
-    if(obj == null || typeof(obj) != 'object')
-        return obj;
-    var temp = new obj.constructor(); 
-    for(var key in obj)
-        temp[key] = clone(obj[key]);
+  if (obj == null || typeof(obj) != 'object') {
+  	return obj;
+  } else if (obj.isString) {
+  	return new constructString(obj.toString());
+  } else {
+  	var temp = new obj.constructor(); 
+    for (var key in obj)
+      temp[key] = clone(obj[key]);
     return temp;
+  }
 }
 
 /*
