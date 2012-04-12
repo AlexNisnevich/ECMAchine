@@ -59,14 +59,10 @@ var Display = {
    * Preprocesses display output
    */
   preprocess: function(str) {
-  	if (!str) {
-  		return null;
-  	} else if (str.isString) {
-  		str = str.toDisplayString();
-  	} else {
-  		str = str.toString();
-  	}
-  	str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+		str = prepareString(str);
+		if (str !== null) {
+			str = str.replace(/lambda/g, '&lambda;').replace(/true/g, '#t').replace(/false/g, '#f');
+		}
   	return str;
   },
   
@@ -75,7 +71,7 @@ var Display = {
    */
   echo: function(str) {
     str = this.preprocess(str);
-    if (str != null) {
+    if (str !== null) {
     	this.terminal.echo(str);
     	this.refresh();
     }
@@ -116,7 +112,7 @@ var Display = {
     for (i = 1; i < command.split(/\n/).length; i++) {
       this.terminal.history().pop(); // need to pop once for each line after the first
     }
-    this.terminal.resize(); // refresh terminal
+    this.terminal.refresh(); // refresh terminal
   },
   
   debugPrint: function(txt) {

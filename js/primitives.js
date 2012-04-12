@@ -24,7 +24,7 @@ var primitiveProcedures = {
 	'js-apply': function(args) {
 		function prepareArg(arg, isObj) {
 			if (typeof arg == 'string' || arg.isString) {
-				arg = "'" + arg.replace(/[\n\r]/g, "\\n") + "'";
+				return arg.toEvalString();
 			} else if (typeof arg == 'object') { 
 				arg = arg.map(function (elt) {
 					return prepareArg(elt);
@@ -32,8 +32,10 @@ var primitiveProcedures = {
 				if (isObj) {
 					arg = '[' + arg + ']';
 				}
+				return arg;
+			} else {
+				return arg;
 			}
-			return arg;
 		}
 	
 		var jsFunc = args[0];
@@ -56,9 +58,9 @@ var primitiveProcedures = {
 		args = args.map(function (arg) {
 			if (arg.isString) { // string concatenation
 				string = true;
-				return '"' + arg.replace(/[\n\r]/g, "\\n") + '"';
+				return arg.toEvalString();
 			} else if (typeof arg == 'string') { // quoted literal concatenation
-				return '"' + arg.replace(/[\n\r]/g, "\\n") + '"';
+				return arg.toEvalString();
 			} else {
 				return arg;
 			}
@@ -89,7 +91,13 @@ var primitiveProcedures = {
 	},
 	
 	// Comparisons
-	'=': function (args) {return (args[0] == args[1])},
+	'=': function (args) {
+		if (args[0].isString && args[1].isString) {
+			return (args[0].toString() == args[1].toString());
+		} else {
+			return (args[0] == args[1]);
+		}
+	},
 	'!=': function (args) {return (args[0] != args[1])},
 	'>': function (args) {return (args[0] > args[1])},
 	'<': function (args) {return (args[0] < args[1])},
@@ -318,7 +326,7 @@ var primitiveProcedures = {
 	'overlay': function (args) {
 		// (overlay txt x y id)
 		var name = args[3];
-		var txt = args[0].toString().replace(/\n/g, '<br />');
+		var txt = args[0].toString().replace(/ /g, '&nbsp;').replace(/\n/g, '<br />');
 		var x = args[1], y = args[2];
 		
 		$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any

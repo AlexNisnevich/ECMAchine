@@ -14,19 +14,23 @@ function clone(obj){
   }
 }
 
+function prepareString(elt) {
+	if (elt === undefined || elt === null) {
+		return '#<undef>';
+	} else if (elt.isString) {
+		return elt.toDisplayString();
+  } else {
+  	return elt.toString();
+  }
+}
+
 /*
  * Array class (used for linked lists)
  */
 Array.prototype.isList = true;
 Array.prototype.toDisplayArray = function() {
 	return this.map(function (elt) {
-		if (!elt) {
-			return '#<undef>';
-		} else if (elt.isString) {
-  		return elt.toDisplayString();
-	  } else {
-	  	return elt;
-	  }
+		return prepareString(elt);
 	});
 }
 Array.prototype.toString = function() {
@@ -72,6 +76,9 @@ String.prototype.toDisplayString = function() {
 	} else {
 		return this.toString();
 	}
+}
+String.prototype.toEvalString = function() {
+	return '"' + this.toString().replace(/[\n\r]/g, "\\n").replace(/'/g, "\\'") + '"';
 }
 
 function constructString(str) {
