@@ -348,6 +348,9 @@ var primitiveProcedures = {
 		Processes.registerOverlay(name); // if called from process, attach overlay name to PID
 		return;
 	},
+	'clear-overlay': function (args) {
+		$('#overlays #' + args[0]).remove();
+	},
 	
 	// experimental
 	
