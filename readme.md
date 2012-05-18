@@ -13,16 +13,51 @@ Table of Contents
 1\.  [The REPL](#therepl)  
 2\.  [Introspection](#introspection)  
 3\.  [The File System](#thefilesystem)  
-4\.  [Review: Higher-Order Functions](#review:higherorderfunctions)  
+3.1\.  [Folders](#folders)  
+3.2\.  [Files](#files)  
+3.3\.  [Other File System Commands](#otherfilesystemcommands)  
+4\.  [Review: Higher-Order Functions](#review:higher-orderfunctions)  
+4.1\.  [Map](#map)  
+4.2\.  [Filter](#filter)  
 5\.  [A Few More Functions](#afewmorefunctions)  
+5.1\.  [js-apply](#js-apply)  
+5.2\.  [length](#length)  
+5.3\.  [sort](#sort)  
+5.4\.  [time](#time)  
+5.5\.  [newline](#newline)  
 6\.  [Scripts](#scripts)  
+6.1\.  [Special Types of Scripts](#specialtypesofscripts)  
 7\.  [Processes](#processes)  
+7.1\.  [Overlays](#overlays)  
+7.2\.  [Example: A Simple Clock](#example:asimpleclock)  
+7.3\.  [Process Management](#processmanagement)  
+7.4\.  [Process Performance](#processperformance)  
 8\.  [Recipes](#recipes)  
 8.1\.  [File System Recipes](#filesystemrecipes)  
+8.1.1\.  [Directory Cleanup](#directorycleanup)  
+8.1.2\.  [File/Folder Size](#file/foldersize)  
+8.1.3\.  [File Search](#filesearch)  
 8.2\.  [Process Manipulation Recipes](#processmanipulationrecipes)  
+8.2.1\.  [Process Cleanup](#processcleanup)  
+8.2.2\.  [A Simple Task Manager](#asimpletaskmanager)  
 8.3\.  [Miscellaneous Recipes](#miscellaneousrecipes)  
-9\.  [What's Next?](#what'snext?)  
-10\.  [Acknowledgements](#acknowledgements)  
+8.3.1\.  [Analog Clock](#analogclock)  
+8.3.2\.  [Other Ideas](#otherideas)  
+9\.  [ed, a Simple Text Editor](#edasimpletexteditor)  
+9.1\.  [Introducing ed](#introducinged)  
+9.2\.  [Design Overview](#designoverview)  
+9.3\.  [Helper Functions](#helperfunctions)  
+9.4\.  [The Skeleton of ed](#theskeletonofed)  
+9.5\.  [Displaying the Editor Contents](#displayingtheeditorcontents)  
+9.6\.  [File Commands](#filecommands)  
+9.7\.  [Edit Commands](#editcommands)  
+9.8\.  [Cool Things](#coolthings)  
+9.8.1\.  [Map](#map)  
+9.8.2\.  [Run](#run)  
+9.8.3\.  [And more](#andmore)  
+9.9\.  [Putting It All Together](#puttingitalltogether)  
+10\.  [What's Next?](#what'snext?)  
+11\.  [Acknowledgements](#acknowledgements)  
 
 <a name="therepl"></a>
 
@@ -192,7 +227,7 @@ You can move, copy, and delete files and directories with the `mv`, `cp`, and `r
 
 The predicates `file?` and `dir?` can be used to find if a path points to a file, directory, or neither.
 
-<a name="review:higherorderfunctions"></a>
+<a name="review:higher-orderfunctions"></a>
 
 4\. Review: Higher-Order Functions
 -----
@@ -243,7 +278,7 @@ ecmachine:/ guest$ (filter (lambda (x) (= (length x) 3)) '(the blue cat))
 
 We're almost at the fun part of the tutorial, but before we get there, I should briefly mention a few more important functions that are included as primitives in ECMAchine.
 
-<a name="jsapply"></a>
+<a name="js-apply"></a>
 
 ### 5.1\. js-apply
 
@@ -779,6 +814,8 @@ This application is saved in `/apps/analogclock.app` and can be run with:
 (start (path 'apps 'analogclock.app) 1000)
 ```
 
+<a name="otherideas"></a>
+
 #### 8.3.2\. Other Ideas
 
 Some other ideas for applications that I've been playing around with but haven't yet finalized code for include:
@@ -787,25 +824,506 @@ Some other ideas for applications that I've been playing around with but haven't
 - Simple anti-virus
 - Notes manager
 
+<a name="edasimpletexteditor"></a>
+
+9\. ed, a Simple Text Editor
+-----
+
+We've seen some simple examples of recipes using ECMAchine's system methods, but can we build a more sophisticated application? For example, let's try taking a look at how to build a simple text editor, which I am going to give the remarkably unoriginal name of **ed**. It's not very fancy, but it does its job and can respond to 15 different commands. And, not counting a few simple helper functions, the whole editor takes up less than 100 lines of Lisp.
+
+_Note: `ed` is not currently defined in ECMAchine by default. To use it, first copy all of the code at the [end of this section](#puttingitalltogether) into the console and run it._
+
+<a name="introducinged"></a>
+
+### 9.1\. Introducing ed
+
+Before we get into implementation details, let's first try running **ed**. You can start the program with the `(ed)` function, at which point an overlay appears in the top-left corner of the screen. Operations are performed by running commands of the form `(ed 'command <params>)`, and editing is line-by-line: a cursor denotes the current line and lines can be created, modified, or deleted.
+
+For example:
+
+```scheme
+ecmachine:/ guest$ (ed 'new)
+ecmachine:/ guest$ (ed 'write "line1")
+ecmachine:/ guest$ (ed 'insert-after "line2")
+ecmachine:/ guest$ (ed 'insert-after "line3")
+ecmachine:/ guest$ (ed 'up) % moves the cursor up
+ecmachine:/ guest$ (ed 'delete)
+ecmachine:/ guest$ (ed 'write " :-}")
+ecmachine:/ guest$ (ed 'save-as 'test.txt)
+(Saved file /test.txt)
+ecmachine:/ guest$ (read 'test.txt)
+line1
+line3 :-}
+```
+
+ed supports the following commands:
+
+- **new**: `(ed 'new)` opens a new blank file
+- **open**: `(ed 'open path)` opens the file at _path_
+- **save**: `(ed 'save)` saves the contents of the text buffer to the current file location (if any)
+- **save-as**: `(ed 'save-as path)` saves the contents of the text buffer to _path_
+- **exit**: `(ed 'exit)` exits ed
+- **up**: `(ed 'up)` moves the cursor up one line
+- **down**: `(ed 'down)` moves the cursor down one line
+- **write**: `(ed 'write text)` appends `text` to the current line
+- **edit**: `(ed 'edit text)` replaces the current line with `text`
+- **delete**: `(ed 'delete)` deletes the current line
+- **insert-before**: `(ed 'insert-before text)` inserts `text` into a new line before the current line
+- **insert-after**: `(ed 'insert-after text)` inserts `text`
+- **map**: `(ed 'map func)` maps every line of the text buffer with `func` (that is, every line `L` is replace with `func(L)`
+- **run**: `(ed 'run)` runs the contents of the text buffer as Lisp in the global environment 
+
+<a name="designoverview"></a>
+
+### 9.2\. Design Overview
+
+The two big questions that needed to be answered when designing ed were:
+
+1. Is ed going to be an application or a function?
+2. How is the text buffer stored?
+3. How is the text buffer displayed?
+
+While implementing ed as an application would have allowed it to run persistently, a text editor doesn't really need to perform any operations on its own, because everything that it does (e.g. load/save files, modify text, move the cursor) is done directly in response to user input. As such, I decided that it would be more straightforward to simply implement ed as a function `(ed)`, that takes a string literal representing the operation to perform as an argument, as well as an optional second argument for some operations.
+
+*ed* stores the current text buffer as a newline-delimited string in the `ed.contents` variable. Storing the text as a string rather than a list of lines makes it easy to save and load files, since text files are stored as strings as well. On the other hand, line-by-line manipulation requires a linked-list structure to work, so `ed.contents` needs to be converted into a list of lines before every edit command and then be converted back into a string. Fortunately, this isn't too hard to implement, as will be shown in the next section.
+
+ed displays the current text buffer in an top-left-aligned overlay containing the filename and then a list of lines. The current position of the cursor is displayed as a caret **'> '** before the line it's on.
+
+The current filename is stored in `ed.filename` and the current line number is stored in `ed.cursor`.
+
+<a name="helperfunctions"></a>
+
+### 9.3\. Helper Functions
+
+Now we can get started on writing code, but before we can start ed itself, we need to make a few more general helper functions.
+
+First of, we need to be able to switch the contents of text files between a single newline-separated string (for storage and display) and a list of lines (for line-by-line manipulation). This is pretty easy to accomplish using JavaScript's `String.split` and `Array.join` methods:
+
+```scheme
+(define (join-lines arr)
+  (js-apply 'join arr "\n"))
+(define (split-lines str)
+  (js-apply 'split str "\n"))
+```
+
+Storing files as lists of strings makes it easy to create, modify, and delete lines, using generic methods for modifying/creating/deleting the nth element of a list:
+
+```scheme
+(define (map-at-index func lst i)
+  (if (= i 0)
+      (cons (func (car lst)) (cdr lst))
+      (cons (car lst) (map-at-index func (cdr lst) (- i 1)))))
+(define (insert-at-index elt lst i)
+  (if (= i 0)
+      (cons elt lst)
+      (cons (car lst) (insert-at-index elt (cdr lst) (- i 1)))))
+(define (remove-at-index lst i)
+  (if (= i 0)
+      (cdr lst)
+      (cons (car lst) (remove-at-index (cdr lst) (- i 1)))))
+```
+
+Finally, for some tasks (such as rendering the cursor), it's helpful to have a more powerful `map` function whose functions take both the list element and its index in the list as arguments. Let's call it `mapi`. Unfortunately, I can't think of any elegant way to do this that doesn't involve a separate helper function:
+
+```scheme
+(define (mapi proc items)
+  (mapi-helper proc items 0))
+(define (mapi-helper proc items i)
+  (if (null? items)
+    nil
+    (cons (proc (car items) i)
+      (mapi-helper proc (cdr items) (+ i 1)))))
+```
+
+<a name="theskeletonofed"></a>
+
+### 9.4\. The Skeleton of ed
+
+The `(ed)` function has a fairly simple overall structure. It can take between 0 and 2 parameters (via the construct `(define (ed . args) ...)` ). Calling `(ed)` without any parameters defaults to `(ed 'refresh)`, which renders the contents of the text buffer onto the screen. If `(> 0 (length args))`, then the arguments are separated into `func` and `params` (which is either a list of a single element or an empty list) - some commands take a parameter and some don't. The rest of `(ed)` is taken up by a single `cond` block that selects the appropriate command:
+
+```scheme
+(define (ed . args)
+  (if (= 0 (length args))
+      (ed 'refresh)
+      (let ((func (car args))
+            (params (cdr args)))
+                (cond ((= func <command>) <implementation>)
+                      ((= func <command>) <implementation>)
+                          
+                         . . .
+
+                ))))
+```
+
+<a name="displayingtheeditorcontents"></a>
+
+### 9.5\. Displaying the Editor Contents
+
+Given that the contents of current text buffer are stored as a string in `ed.contents`, how would we go about displaying them?
+
+Well, we could just display them directly:
+
+```scheme
+(overlay ed.contents 30 30 'ed)
+```
+
+Ah, that wasn't too bad. How about if we want to indicate the position of the cursor at the line whose number is `ed.cursor`? Let's do this by prefixing the current line with "`>`" and prefixing all other lines with "`. `". To do this, we'd have to (1) convert the string in `ed.contents` into a list of lines, (2) transform each line based on whether its number equals `ed.cursor`, and (3) convert back to a newline-delimited string for display:
+
+```scheme
+(join-lines
+ (mapi (lambda (x i) 
+        (if (= i ed.cursor)
+            (+ "> " x)
+            (+ ". " x)))
+        (split-lines ed.contents)))
+```
+
+We're almost there! One last thing that'd be nice would be displaying the name of the current file (or `"New File"` if the file has not been loaded/saved yet). And while we're add it, let's add a nice title bar of sorts:
+
+```scheme
+((= func 'refresh)
+  (let ((display-contents 
+         (join-lines 
+          (append 
+                 (list "::: ECMAchine Text Editor (v0.1) :::"
+                       (+ "== " (if (= ed.filename "") "New File" ed.filename) " =="))
+                 (mapi (lambda (x i) 
+                         (if (= i ed.cursor)
+                             (+ "> " x)
+                             (+ ". " x)))
+                      (split-lines ed.contents))))))
+       (overlay display-contents 30 30 'ed)))
+```
+
+Not too shabby. And since there's no process running in the background for **ed**, exiting is just a matter of clearing this overlay:
+
+```scheme
+((= func 'exit) (clear-overlay 'ed))
+```
+
+Most of the commands that follow use Scheme's `begin` construct, which executes a sequence of functions in order. We'll need to use `begin` because a lot of the time we'll want to modify the contents of **ed** and then refresh the display. In other words, the general template for most editing commands will be:
+
+```scheme
+(begin
+  % do something
+  (ed 'refresh))
+```
+
+Ok, let's begin defining commands!
+
+<a name="filecommands"></a>
+
+### 9.6\. File Commands
+
+**ed** has four commands that deal directly with files: `new`, `open`, `save`, and `save-as`.
+
+When `(ed 'new)` is executed, the three variables used by **ed** (`ed.filename`, `ed.contents`, and `ed.cursor`) are all reset:
+
+```scheme
+((= func 'new)
+ (begin
+   (set! ed.filename "")
+   (set! ed.contents "")
+   (set! ed.cursor 0)
+   (ed 'refresh)))
+```
+
+`(ed 'open <file>)` sets `ed.filename` and `ed.contents` to be those of _<file>_ (where _<file>_ is a valid path):
+
+```scheme
+((or (= func 'open) (= func 'load))
+ (begin
+   (set! ed.filename (car params))
+   (set! ed.contents (read ed.filename))
+   (ed 'refresh)))
+```
+
+`(ed 'save)` and `(ed 'save-as <file>)` save `ed.contents` to either the current file (if any) or a specified _<file>_:
+
+```scheme
+((= func 'save)
+ (if (= ed.filename "")
+     '(No filename chosen - use the 'save-as command instead)
+     (save ed.filename ed.contents)))
+((= func 'save-as)
+ (begin
+   (set! ed.filename (car params))
+   (ed 'refresh)
+   (save ed.filename ed.contents)))
+```
+
+<a name="editcommands"></a>
+
+### 9.7\. Edit Commands
+
+The `up` and `down` command generally move the cursor by decrementing or incrementing, respectively, the value stored in `ed.cursor`. Special care must be taken to make sure that `ed.cursor` stays within the bounds of the file:
+
+```scheme
+((= func 'up)
+ (begin
+   (set! ed.cursor (math 'max (list 0 (- ed.cursor 1))))
+   (ed 'refresh)))
+((= func 'down)
+ (begin
+   (set! ed.cursor (math 'min (list (+ ed.cursor 1) (- (length (split-lines ed.contents)) 1))))
+   (ed 'refresh)))
+```
+
+To append text to the current line for the `write` command: we can (1) split `ed.contents` into a list of lines, (2) find the current line and append the given text to it via `map-at-index`, and (3) join the resulting list back into a newline-delimited string:
+
+```scheme
+((= func 'write)
+ (begin
+   (set! ed.contents (join-lines (map-at-index (lambda (str) (+ str (car params))) (split-lines ed.contents) ed.cursor)))
+   (ed 'refresh)))
+```
+
+`edit` functions almost identically to `write`, except that it replaces the current line outright rather than appending to it, by mapping `(λ (str) (car params))` rather than `(λ (str) (+ str (car params)))`:
+
+```scheme
+((= func 'edit)
+ (begin
+   (set! ed.contents (join-lines (map-at-index (lambda (str) (car params)) (split-lines ed.contents) ed.cursor)))
+   (ed 'refresh)))
+```
+
+To remove the current line for the `delete` command, we can (1) split `ed.contents` into a list of lines, (2) find the current line and remove it via `remove-at-index`, and (3) join the resulting list back into a newline-delimited string:
+
+```scheme
+((= func 'delete)
+ (begin
+   (set! ed.contents (join-lines (remove-at-index (split-lines ed.contents) ed.cursor)))
+   (ed 'down)))
+```
+
+To insert new lines before or after the cursor, we can (1) split `ed.contents` into a list of lines, (2) find either the current line (for `insert-before`) or the following line (for `insert-after`) and insert a new line at its index via `insert-at-index`, and (3) join the resulting list back into a newline-delimited string:
+
+```scheme
+((= func 'insert-before)
+ (begin
+   (set! ed.contents (join-lines (insert-at-index (car params) (split-lines ed.contents) ed.cursor) ))
+   (ed 'refresh)))
+((= func 'insert-after)
+ (begin
+   (set! ed.contents (join-lines (insert-at-index (car params) (split-lines ed.contents) (+ ed.cursor 1))))
+   (ed 'down)))
+```
+
+<a name="coolthings"></a>
+
+### 9.8\. Cool Things
+
+Now that we can perform all of the basic commands expected of a simple file editor, let's try our hand at some features that are a little more interesting.
+
+<a name="map"></a>
+
+#### 9.8.1\. Map
+
+Sometimes we want to apply an arbitrary function to every line in a file.
+
+To this end, `map` takes an argument of the form `(λ (x i) ...)`, where `x` represents the contents of a given line and `i` its line number, and maps this function onto every line in the text buffer:
+
+```scheme
+((= func 'map)
+ (begin
+   (set! ed.contents (join-lines (mapi (car params) (split-lines ed.contents))))
+   (ed 'refresh)))
+```
+
+When can this come in handy? Well, let's say that we're reading a file and want to be able to see line numbers for it. This can be accomplished very easily using `(ed 'map)`, as can be seen below. (Note, however, that this edits the contents of the text buffer directly, so make sure not to save the file after using this!)
+
+```scheme
+(ed 'map (lambda (x i) (+ (+ i 1) ". " x)))
+```
+
+Alternatively, if you want a more sophisticated line numbering, with all numbers right aligned, you can use this monstrosity of a function (bonus points to anyone who can accomplish the same effect with less horrendous code):
+
+```scheme
+(ed 'map 
+  (lambda (x i) 
+    (+ 
+      (js-apply 'join (js-apply "new Array" (math 'floor (- 5 (/ (math 'log (+ i 1.1)) (math 'log 10))))) " ")
+      (+ i 1)
+      "| "
+      x)))
+```
+
+<a name="run"></a>
+
+#### 9.8.2\. Run
+
+Given that ECMAchine is an OS based around S-expressions, it stands to reason that a lot of the files that we're be editing will be Lisp files. Could we run them from within **ed**?
+
+We can, but it's a little tricky - since the only system function that allows us to execute arbitrary code is `exec`, we'll have to save `ed.contents` to a temporary file, then execute the file, a finally remove the file and display the results, in that order:
+
+```scheme
+((= func 'run)
+ (begin
+   (save 'tmp.txt ed.contents)
+   (let ((result (exec 'tmp.txt)))
+        (begin (rm 'tmp.txt) result))))
+```
+
+Let's see it in action!
+
+```
+ecmachine:/ guest$ (ed 'new)
+ecmachine:/ guest$ (ed 'write "(+ 2 3)")
+ecmachine:/ guest$ (ed 'run)
+5
+```
+
+<a name="andmore"></a>
+
+#### 9.8.3\. And more
+
+What other features could we add to the editor? 
+
+Macros are certainly possible - a `macro-record` command could store all subsequent `(ed)` commands to a list, while `macro-run` could execute the recorded commands an arbitrary number of times.
+
+An undo/redo feature could be simply implemented, by keeping a list of past states that's updated with every command run. A trickier but more memory-efficient solution would be to store only a list of operations (like for macros) - the tricky bit is that the undo command would have to be able to `reverse` a command (for instance, turning an insert into a delete, and vice versa).
+
+The `map` command could easily be turned into a `filter` command - this could be handy for something like file search. What about replace?
+
+Feeling especially adventurous? Try using the ECMAchine's `(ajax)` function to integrate **ed** with some online file hosting/editing system. In this case, a background process would probably be needed to notify **ed** of changes to the file.
+
+On a more practical note, **ed** currently suffers from an immense usability issue: it always tries to display every line of the current file and thus is impractical for large files. A better approach would be to only display perhaps the 20 lines closest to the cursor at any given time.
+
+<a name="puttingitalltogether"></a>
+
+### 9.9\. Putting It All Together
+
+Here is all of the code needed to be able to run **ed** on ECMAchine:
+
+```scheme
+(define (join-lines arr)
+  (js-apply 'join arr "\n"))
+(define (split-lines str)
+  (js-apply 'split str "\n"))
+(define (map-at-index func lst i)
+  (if (= i 0)
+      (cons (func (car lst)) (cdr lst))
+      (cons (car lst) (map-at-index func (cdr lst) (- i 1)))))
+(define (insert-at-index elt lst i)
+  (if (= i 0)
+      (cons elt lst)
+      (cons (car lst) (insert-at-index elt (cdr lst) (- i 1)))))
+(define (remove-at-index lst i)
+  (if (= i 0)
+      (cdr lst)
+      (cons (car lst) (remove-at-index (cdr lst) (- i 1)))))
+(define (mapi proc items)
+  (mapi-helper proc items 0))
+(define (mapi-helper proc items i)
+  (if (null? items)
+    nil
+    (cons (proc (car items) i)
+      (mapi-helper proc (cdr items) (+ i 1)))))
+
+(define ed.contents "")
+(define ed.filename "")
+(define ed.cursor 0)
+(define (ed . args)
+  (if (= 0 (length args))
+      (ed 'refresh)
+      (let ((func (car args))
+            (params (cdr args)))
+           (cond ((= func 'refresh)
+                   (let ((display-contents 
+                          (join-lines 
+                           (append 
+                                  (list "::: ECMAchine Text Editor (v0.1) :::"
+                                        (+ "== " (if (= ed.filename "") "New File" ed.filename) " =="))
+                                  (mapi (lambda (x i) 
+                                          (if (= i ed.cursor)
+                                              (+ "> " x)
+                                              (+ ". " x)))
+                                       (split-lines ed.contents))))))
+                         (overlay display-contents 30 30 'ed)))
+                 ((= func 'exit) (clear-overlay 'ed))
+                 
+                 ((= func 'new)
+                  (begin
+                    (set! ed.filename "")
+                    (set! ed.contents "")
+                    (set! ed.cursor 0)
+                    (ed 'refresh)))
+                 ((or (= func 'open) (= func 'load))
+                  (begin
+                    (set! ed.filename (car params))
+                    (set! ed.contents (read ed.filename))
+                    (ed 'refresh)))
+                 ((= func 'save)
+                  (if (= ed.filename "")
+                      '(No filename chosen - use the 'save-as command instead)
+                      (save ed.filename ed.contents)))
+                 ((= func 'save-as)
+                  (begin
+                    (set! ed.filename (car params))
+                    (ed 'refresh)
+                    (save ed.filename ed.contents)))
+                 
+                 ((= func 'up) 
+                  (begin
+                    (set! ed.cursor (math 'max (list 0 (- ed.cursor 1))))
+                    (ed 'refresh)))
+                 ((= func 'down)
+                  (begin
+                    (set! ed.cursor (math 'min (list (+ ed.cursor 1) (- (length (split-lines ed.contents)) 1))))
+                    (ed 'refresh)))
+                 
+                 ((= func 'write)
+                  (begin
+                    (set! ed.contents (join-lines (map-at-index (lambda (str) (+ str (car params))) (split-lines ed.contents) ed.cursor)))
+                    (ed 'refresh)))
+                 ((= func 'edit)
+                  (begin
+                    (set! ed.contents (join-lines (map-at-index (lambda (str) (car params)) (split-lines ed.contents) ed.cursor)))
+                    (ed 'refresh)))
+                 ((= func 'delete)
+                  (begin
+                    (set! ed.contents (join-lines (remove-at-index (split-lines ed.contents) ed.cursor)))
+                    (ed 'down)))
+                 ((= func 'insert-before)
+                  (begin
+                    (set! ed.contents (join-lines (insert-at-index (car params) (split-lines ed.contents) ed.cursor)))
+                    (ed 'refresh)))
+                 ((= func 'insert-after)
+                  (begin
+                    (set! ed.contents (join-lines (insert-at-index (car params) (split-lines ed.contents) (+ ed.cursor 1))))
+                    (ed 'down)))
+                 
+                 ((= func 'map)
+                  (begin
+                    (set! ed.contents (join-lines (mapi (car params) (split-lines ed.contents))))
+                    (ed 'refresh)))
+                 ((= func 'run)
+                  (begin
+                    (save 'tmp.txt ed.contents)
+                    (let ((result (exec 'tmp.txt)))
+                         (begin (rm 'tmp.txt) 
+                                result))))
+                    
+                ))))
+```
+
 <a name="what'snext?"></a>
 
-9\. What's Next??
+10\. What's Next??
 -----
 
 Here are some things I'd like to see in ECMAchine:
 
 - Language 
  - Comments
- - True strings that aren't just quoted lists
- - Primitive functions for making AJAX requests, thus enabling applications to communicate with the outside world
  - Newlines should be preserved when:
      - writing to files
      - displaying function contents
 - Library
  - (accumulate), other higher-order functions?
- - wrappers for the AJAX primitives
+ - wrappers for the `ajax` function
 - Processes
- - Processes (and scripts) should have their own environments rather than using global environment
+ - Should processes (and scripts) have their own environments rather than using global environment?
  - Allow passing arguments to a process/script
  - Refactor processes into a new class (like Filesystem)
  - More accurate performance measurement (rather than just adding up all evals and dividing by total time)
@@ -814,19 +1332,15 @@ Here are some things I'd like to see in ECMAchine:
      - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
  - Allow overlays to be draggable?
 - Programs
- - It would be very cool to actually get some more involved programs working: e.g.
-     - Text editor
-     - Web browser
+ - It would be very cool to actually get some more involved programs working: e.g. a web browser
  - This involves lots of challenges: e.g. how to get user input in a program
 - Sessions
-	- Use localStorage
-	- (restart) command
 	- User accounts?
 	- Some sort of import/export support?
 
 <a name="acknowledgements"></a>
 
-10\. Acknowledgements
+11\. Acknowledgements
 -----
 
 I'd like to thank:
