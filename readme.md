@@ -837,11 +837,11 @@ _Note: `ed` is not currently defined in ECMAchine by default. To use it, first c
 
 ### 9.1\. Introducing ed
 
-Before we get into implementation details, let's first try running **ed**. You can start the program with the `(ed)` function, at which point an overlay appears in the top-left corner of the screen. Operations are performed by running commands of the form `(ed 'command <params>)`, and editing is line-by-line: a cursor denotes the current line and lines can be created, modified, or deleted.
+Before we get into implementation details, let's first try running **ed**. You can start the program with the `(ed)` function, at which point an overlay appears in the top-left corner of the screen displaying the current contents of the text buffer. Operations are performed by running commands of the form `(ed 'command <params>)`, and editing is line-by-line: a cursor denotes the current line and lines can be created, modified, or deleted.
 
 For example:
 
-```scheme
+```
 ecmachine:/ guest$ (ed 'new)
 ecmachine:/ guest$ (ed 'write "line1")
 ecmachine:/ guest$ (ed 'insert-after "line2")
