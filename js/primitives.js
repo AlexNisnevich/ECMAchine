@@ -1,7 +1,7 @@
 /*
  * Primitive procedure definitions
  */
-	
+
 var primitiveProcedures = {
 	// Hooks to underlying environment
 	'environment': function() {
@@ -25,10 +25,10 @@ var primitiveProcedures = {
 		function prepareArg(arg, isObj) {
 			if (typeof arg == 'string' || arg.isString) {
 				return arg.toEvalString();
-			} else if (typeof arg == 'object') { 
+			} else if (typeof arg == 'object') {
 				arg = arg.map(function (elt) {
 					return prepareArg(elt);
-				}).join(','); 
+				}).join(',');
 				if (isObj) {
 					arg = '[' + arg + ']';
 				}
@@ -37,7 +37,7 @@ var primitiveProcedures = {
 				return arg;
 			}
 		}
-	
+
 		var jsFunc = args[0];
 		if (args.length == 2) {
 			var jsArgs = prepareArg(args[1]);
@@ -48,10 +48,10 @@ var primitiveProcedures = {
 		} else {
 			throw 'js-apply error: Expected 2 or 3 arguments, but got ' + args.length;
 		}
-		
+
 		return eval(jsFunc + '(' + jsArgs + ')');
 	},
-	
+
 	// Arithmetic
 	'+': function(args) {
 		var string = false;
@@ -65,7 +65,7 @@ var primitiveProcedures = {
 				return arg;
 			}
 		});
-		
+
 		result = eval(args.join('+'));
 		if (string) {
 			result = constructString(result);
@@ -89,7 +89,7 @@ var primitiveProcedures = {
 			return (args[0] / args[1]);
 		}
 	},
-	
+
 	// Comparisons
 	'=': function (args) {
 		if (args[0].isString && args[1].isString) {
@@ -103,12 +103,12 @@ var primitiveProcedures = {
 	'<': function (args) {return (args[0] < args[1])},
 	'>=': function (args) {return (args[0] >= args[1])},
 	'<=': function (args) {return (args[0] <= args[1])},
-		
+
 	// Logical
 	'not': function (args) {return !(args[0]);},
 	'and': function (args) {return eval(args.join('&&'));},
 	'or': function (args) {return eval(args.join('||'));},
-		
+
 	// List operations
 	'cons': function (args) {
 		if (args[1].isList) {
@@ -135,7 +135,7 @@ var primitiveProcedures = {
 	'length': function (args) {
 		return args[0].length;
 	},
-	
+
 	// Misc Lisp
 	'do-nothing': function () {
 		return;
@@ -161,13 +161,13 @@ var primitiveProcedures = {
 			return 0;
 		});
 	},
-	
+
 	// ECMAchine general
 	'help': function () {
-		return 'The following LISP commands are supported as primitives:' + 
-				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, let, let*, list, not, or, quote' + 
-			'\nThe following LISP commands are among those defined in the standard library (located in /startup):' + 
-				'\n\t abs, cadr, filter, map, null?, sum' + 
+		return 'The following LISP commands are supported as primitives:' +
+				'\n\t +, -, *, /, >, <, =, and, begin, car, cdr, cond, cons, define, if, lambda, length, let, let*, list, not, or, quote' +
+			'\nThe following LISP commands are among those defined in the standard library (located in /startup):' +
+				'\n\t abs, cadr, filter, map, null?, sum' +
 			'\nEnvironment commands:' +
 				'\n\t (environment)              Lists the currently bound variables' +
 				'\n\t (inspect-primitive [[i;;]func])   Shows the JavaScript code of a primitive function' +
@@ -198,12 +198,13 @@ var primitiveProcedures = {
 				'\n\t (kill [[i;;]pid])                 Kills the process with the specified PID' +
 			  '\n\t (performance [[i;;]pid])          Shows the performance of the process with the specified PID (in evals per sec)' +
 			'\nMiscellaneous commands:' +
-				'\n\t (time [[[i;;]format]])            Displays the current time' + 
+				'\n\t (time [[[i;;]format]])            Displays the current time' +
 				'\n\t (overlay [[i;;]txt x y id])       Creates or refreshes an overlay with text at position [[i;;](x,y)] on the screen' +
-				'\n\t (sort [[[i;;]lst]] [[[i;;]keyfunc]])     Sorts a list in ascending order, optionally using the specified key function' + 
+				'\n\t (sort [[[i;;]lst]] [[[i;;]keyfunc]])     Sorts a list in ascending order, optionally using the specified key function' +
 				'\n\t (newline)                  Returns a newline character' +
 				'\n\t (do-nothing)               Dummy command' +
-				'\n\t (help)                     Displays this help screen'
+				'\n\t (help)                     Displays this help screen' +
+			'\nFor more help go to https://github.com/AlexNisnevich/ECMAchine'
 			;
 	},
 	'shutdown': function () {
@@ -221,7 +222,7 @@ var primitiveProcedures = {
 	'time': function (args) {
 		var date = new Date();
 	    if (args[0] == null) {
-	    	return date.getTime();	    	
+	    	return date.getTime();
 	    } else {
     		return args[0].map(function (str) {
 	    		switch (str) {
@@ -237,14 +238,14 @@ var primitiveProcedures = {
 	    	});
 	    }
 	},
-	
+
 	// Filesystem
 	'ls': function (args) {
 		return Filesystem.listFiles(args[0]);
 	},
 	'cd': function (args) {
 		var newPath = Filesystem.navigate(args[0]);
-		terminal.set_prompt('ecmachine:' + newPath + ' guest$');
+		Display.terminal.set_prompt('ecmachine:' + newPath + ' guest$');
 		return;
 	},
 	'read': function (args) {
@@ -296,7 +297,7 @@ var primitiveProcedures = {
 	'path': function (args) {
 		return args.join('/').replace('//','/');
 	},
-	
+
 	// Processes
 	'processes': function (args) {
 		return Processes.listProcesses().map(function (proc) {
@@ -328,7 +329,7 @@ var primitiveProcedures = {
 		var name = args[3];
 		var txt = args[0].toString().replace(/ /g, '&nbsp;').replace(/\n/g, '<br />');
 		var x = args[1], y = args[2];
-		
+
 		$('#overlays #' + name).remove(); // remove existing overlay w/ same id, if any
 		var overlay = $('<div>').attr('id', name).appendTo('#overlays');
 		overlay.html(txt);
@@ -344,33 +345,33 @@ var primitiveProcedures = {
 		} else {
 			overlay.css('bottom', -y);
 		}
-		
+
 		Processes.registerOverlay(name); // if called from process, attach overlay name to PID
 		return;
 	},
 	'clear-overlay': function (args) {
 		$('#overlays #' + args[0]).remove();
 	},
-	
+
 	// experimental
-	
+
 	'ajax': function (args) {
 		var url = 'lib/ba-simple-proxy.php?url=' + args[0];
-		
+
 		var data_arr = args[1];
 		var data = data_arr.map(function(elt) {
 			return elt.car() + '=' + elt.cdr().toString();
 		}).join('&'); // send data as string rather than object, so that it's not preprocessed
-		
+
 		var callback = args[2];
-		
+
 		$.post(url, data, function (result) {
 			var contents = result.contents.split('\r\n\r\n')[1];
 			Display.echo(lispApply(callback, new Array(contents)));
 		});
 		return;
 	},
-	
+
 	'$': function (args) {
 		// preprocess args
 		args = args.map(function(arg) {
@@ -380,7 +381,7 @@ var primitiveProcedures = {
 				return arg;
 			}
 		})
-		
+
 		// prepare function
 		var func = null;
 		if (args.length > 1) {
@@ -389,7 +390,7 @@ var primitiveProcedures = {
 		}
 		console.log(func);
 		console.log(args);
-		
+
 		// run function
 		if (func) {
 			var result = $[func].apply(this, args);
@@ -397,12 +398,12 @@ var primitiveProcedures = {
 			var result = $.apply(this, args);
 		}
 		console.log(result);
-		
+
 		// process result
 		if (typeof result == 'object') {
 			result = $.makeArray(result);
 		}
-		
+
 		return result;
 	}
 };

@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <title>ECMAchine</title>
-    
+
     <script src="js/lib/jquery-1.7.1.min.js"></script>
     <script src="js/lib/jquery.mousewheel-min.js"></script>
     <script src="js/lib/jquery.terminal.js"></script>
     <script src="js/lib/es5-shim.min.js"></script>
-    
+
     <script src="js/helpers.js"></script>
     <script src="js/environment.js"></script>
     <script src="js/evaluator.js"></script>
     <script src="js/os.js"></script>
     <script src="js/primitives.js"></script>
-    
+
     <link href="css/jquery.terminal.css" rel="stylesheet"/>
-    
+
     <script>
     jQuery(document).ready(function($) {
         $(document.documentElement).terminal(function(command, term) {
@@ -36,7 +36,7 @@
                 Display.echo('');
             }
         }, {
-            greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands.',
+            greetings: 'Welcome to the ECMAchine! It\'s a little LISPy shell that dreams of being an operating system. Enter (help) for a list of commands. Read more at https://github.com/AlexNisnevich/ECMAchine',
             name: 'terminal',
             height: 200,
             prompt: 'ecmachine:/ guest$',
@@ -47,14 +47,14 @@
                 OS.initialize();
                 Display.resize();
             },
-            
+
             // custom options
             historycolors: {
                 'prompt': '#080',
                 'command': '#399'
             }
         });
-      
+
         $(window).resize(Display.refresh);
     });
 	  </script>
@@ -62,7 +62,7 @@
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-345959-10']);
       _gaq.push(['_trackPageview']);
-    
+
       (function() {
         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';

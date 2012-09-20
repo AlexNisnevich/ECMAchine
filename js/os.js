@@ -7,20 +7,20 @@ var OS = {
     initEvaluator();
     this.loadState();
     Filesystem.initialize();
-    
+
     // start automatically saving filesystem to localStorage every 60 sec
     setInterval(OS.saveState, 60000);
   },
-  
+
   close: function() {
     window.open('', '_self', ''); // Arthur Filliot's suggestion - allows window.close() to work in Chrome
-    window.close(); 
+    window.close();
   },
-  
+
   reboot: function() {
     location.reload(true);
   },
-  
+
   loadState: function() {
     if (typeof localStorage != "undefined" && typeof localStorage.fileSystemFrame != "undefined") {
       Display.echo("Restoring filesystem state ...");
@@ -30,13 +30,13 @@ var OS = {
    }
    Filesystem.importFSFrame(fileSystemFrame);
   },
-  
+
   saveState: function() {
     if (typeof localStorage != "undefined") {
       localStorage.fileSystemFrame = JSON.stringify(Filesystem.exportFSFrame());
     }
   },
-  
+
   deleteSavedState: function() {
     if (typeof localStorage != "undefined") {
       delete localStorage.fileSystemFrame;
@@ -50,11 +50,11 @@ var OS = {
 var Display = {
   terminal: null, // terminal object
   lineContinuationString: '.. ',
-  
+
   initialize: function(term) {
     this.terminal = term;
   },
-  
+
   /*
    * Preprocesses display output
    */
@@ -65,7 +65,7 @@ var Display = {
 		}
   	return str;
   },
-  
+
   /*
    * Process and display output
    */
@@ -76,18 +76,18 @@ var Display = {
     	this.refresh();
     }
   },
-  
+
   /*
    * Refresh terminal: resize + scroll to bottom
    */
   refresh: function() {
     // timeout needed to avoid some silly UI issues
-    setTimeout( function() { 
+    setTimeout( function() {
       Display.terminal.resize();
       $(document).scrollTop($(document).height());
     }, 100);
   },
-  
+
   /*
    * Resize terminal to avoid overlap with overlays
    */
@@ -97,12 +97,12 @@ var Display = {
     } else {
       var newWidth = $('.overlayRight').map(function (i, x) {return x.offsetLeft;}).sort(function (a,b) {return a - b})[0] - 20;
     }
-    
+
     if (this.terminal.width() != newWidth) {
       this.terminal.resize(newWidth, this.terminal.height());
     }
   },
-  
+
   /*
    * Adds a new line and removes previous command from output and history
    */
@@ -114,7 +114,14 @@ var Display = {
     }
     this.terminal.refresh(); // refresh terminal
   },
-  
+
+  /*
+   * Returns the terminal object for direct interaction
+   */
+  terminal: function() {
+    return this.terminal;
+  },
+
   debugPrint: function(txt) {
   	if (Processes.getCurrentProcess().isTerminal) {
   		console.log(txt);
@@ -128,35 +135,35 @@ var Display = {
 var Filesystem = {
   fs: null, // path to file system
   currentDir: '/', // current directory
-  
+
   /*
    * Initializes filesystem (called from OS.initialize() )
    */
   initialize: function() {
     Display.echo('Launching filesystem ...');
-    
+
     // Run all files in /startup
     for (var fname in Filesystem.getDir('/startup')) {
       var contents = Filesystem.getFile('/startup/' + fname).contents;
       evaluate(contents);
     }
   },
-  
+
   //
   // HELPER FUNCTIONS
   //
-  
+
   importFSFrame: function(fileSystemFrame) {
     this.fs = fileSystemFrame['__fileSystem'];
-    
+
     // Add file system frame to environment
     globalEnvironment.push(fileSystemFrame);
   },
-  
+
   exportFSFrame: function() {
     return {'__fileSystem': this.fs};
   },
-    
+
   /*
    * Gets new path (e.g. for 'cd' command)
    */
@@ -181,7 +188,7 @@ var Filesystem = {
       return (newPath != '') ? newPath : '/';
     }
   },
-  
+
   /*
    * e.g. '/dir1/dir2/file' => 'file'
    */
@@ -189,7 +196,7 @@ var Filesystem = {
     var pathSplit = path.split('/');
     return pathSplit[pathSplit.length - 1];
   },
-  
+
   /*
    * e.g. '/dir1/dir2/file' => '/dir1/dir2'
    */
@@ -202,54 +209,54 @@ var Filesystem = {
       return this.calculatePath(pathSplit.slice(0, pathSplit.length - 1).join('/'));
     }
   },
-  
+
   /*
    * Gets a file from a path
    */
   getFile: function(path) {
     return this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)];
   },
-  
+
   /*
    * Gets all files in directory
    */
   getDir: function(dir) {
     return this.fs[dir];
   },
-  
+
   /*
    * Creates/updates file at given path
    */
   setFile: function(path, file) {
     this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)] = file;
   },
-  
+
   /*
    * Creates/updates dir at given path
    */
   setDir: function(path, dir) {
     this.fs[path] = dir;
   },
-  
+
   /*
    * Deletes file at path
    */
   deleteFileAtPath: function(path) {
     delete this.fs[this.getFolderFromPath(path)][this.getNameFromPath(path)];
   },
-  
+
   /*
    * Deletes directory
    */
   deleteDir: function(path) {
     delete this.fs[path];
   },
-  
+
   //
   // EXCEPTIONS
   //
-  
-  
+
+
   /*
    * Throws exception if path not valid
    */
@@ -258,7 +265,7 @@ var Filesystem = {
       throw 'File system error: path "' + path + '" does not exist';
     }
   },
-  
+
   /*
    * Throws exception if file doesn't exist
    */
@@ -267,7 +274,7 @@ var Filesystem = {
       throw 'File system error: file "' + path + '" does not exist';
     }
   },
-  
+
   /*
    * Throws exception if file is a directory
    */
@@ -276,7 +283,7 @@ var Filesystem = {
       throw 'File system error: "' + path + '" is a directory';
     }
   },
-  
+
   /*
    * Throws exception if file/dir already exists
    */
@@ -285,18 +292,18 @@ var Filesystem = {
       throw 'Error: "' + path + '" already exists';
     }
   },
-  
+
   //
   // FILESYSTEM FUNCTIONS
   //
-  
+
   /*
    * Lists files in directory
    */
   listFiles: function(dir) {
     var workingDir = dir ? this.calculatePath(dir) : this.currentDir;
     this.checkPathExists(workingDir);
-    
+
     var fileNames = [];
     for (var fname in this.getDir(workingDir)) {
       fileNames.push(fname);
@@ -304,7 +311,7 @@ var Filesystem = {
     fileNames.sort();
     return fileNames;
   },
-  
+
   /*
    * Changes the current directory
    * Returns the new path
@@ -315,7 +322,7 @@ var Filesystem = {
     this.currentDir = newPath;
     return newPath;
   },
-  
+
   /*
    * Returns file contents
    */
@@ -325,7 +332,7 @@ var Filesystem = {
     this.checkNotADir(file, path);
     return file.contents;
   },
-  
+
   /*
    * Creates a directory
    * Returns its path
@@ -337,7 +344,7 @@ var Filesystem = {
     this.setFile(name, { 'type': 'dir' });
     return newDirPath;
   },
-  
+
   /*
    * Creates new file
    * Returns its path
@@ -348,7 +355,7 @@ var Filesystem = {
     this.setFile(path, { 'type': 'file', 'contents': '' });
     return this.calculatePath(path);
   },
-  
+
   /*
    * Saves the file
    * Returns its path
@@ -359,7 +366,7 @@ var Filesystem = {
     this.setFile(path, { 'type': 'file', 'contents': contents });
     return this.calculatePath(path);
   },
-  
+
   /*
    * Removes a file or directory
    * Returns its path
@@ -374,7 +381,7 @@ var Filesystem = {
     this.deleteFileAtPath(path);
     return this.calculatePath(path);
   },
-  
+
   /*
    * Copies a file or directory to a new path
    * Returns {oldPath, newPath}
@@ -384,22 +391,22 @@ var Filesystem = {
     var oldPath = this.calculatePath(path);
     var newPath = this.calculatePath(newPath);
     var newFolderPath = this.getFolderFromPath(newPath);
-    
+
     this.checkFileExists(file, path);
     this.checkPathExists(newFolderPath);
-    
+
     // if copying to a dir, append current filename to path
     if (this.getFile(newPath) && this.getFile(newPath).type == 'dir') {
       newPath = newPath + '/' + this.getNameFromPath(path);
     }
-    
+
     if (file.type == 'dir') {
       this.setDir(newPath, this.getDir(oldPath));
       this.setFile(newPath, { 'type': 'dir' });
     } else {
       this.setFile(newPath, { 'type': 'file', 'contents': file.contents });
     }
-    
+
     return {
       'oldPath': oldPath,
       'newPath': newPath
@@ -413,18 +420,18 @@ var Filesystem = {
 var Processes = {
 	processList: [],
 	currentPID: null,
-	
+
 	terminalProcess: {
 		'pid': -1,
 		'name': 'Terminal',
 		'isTerminal': true,
-		
+
 		// Performance
 		'timeStarted': new Date().getTime(),
 		'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
 		'evals': 0
 	},
-	
+
 	getProcessByID: function(pid) {
 		if (pid == -1 || pid == null) {
 			return this.terminalProcess;
@@ -434,11 +441,11 @@ var Processes = {
 			return this.processList[pid];
 		}
 	},
-	
+
 	getCurrentProcess: function() {
 		return this.getProcessByID(this.currentPID);
 	},
-	
+
 	setCurrentPID: function(pid) {
 		if (pid !== undefined) {
 			Processes.currentPID = pid;
@@ -446,7 +453,7 @@ var Processes = {
 			Processes.currentPID = null;
 		}
 	},
-	
+
 	/*
 	 * Increments the evals count of the current process
 	 */
@@ -454,13 +461,13 @@ var Processes = {
 		var process = this.getCurrentProcess();
 		process.evals++;
 	},
-	
+
 	/*
 	 * Starts a new process, returns its PID
 	 */
 	startProcess: function(name, contents, refreshRate) {
 		var pid = this.processList.length;
-		
+
 		// start interval
 		var interval = setInterval(function () {
 			var result = evaluate(contents, pid);
@@ -468,7 +475,7 @@ var Processes = {
 				Display.echo(result);
 			}
 		}, refreshRate);
-		
+
 		// add to process list
 		this.processList.push({
 			'pid': pid,
@@ -477,17 +484,17 @@ var Processes = {
 			'code': contents,
 			'terminated': false,
 			'overlays': [],
-			
+
 			// Performance
 			'timeStarted': new Date().getTime(),
 			'timeElapsed': function () { return ((new Date().getTime()) - this.timeStarted); },
 			'interval': refreshRate,
 			'evals': 0
 		});
-		
+
 		return pid;
 	},
-	
+
 	/*
 	 * Kills a process by PID, returns result
 	 */
@@ -498,15 +505,15 @@ var Processes = {
 		}
 		clearInterval(proc.process);
 		proc.terminated = true;
-		
+
 		// remove associated overlays
 		proc.overlays.forEach(function (name) {
 			$('#overlays #' + name).remove();}
 		);
-		
+
 		return new Array('Process with PID ' + pid + ' [' + proc.name + '] terminated');
 	},
-	
+
 	/*
 	 * Returns a list of running processes
 	 */
@@ -515,7 +522,7 @@ var Processes = {
 		procs.unshift(this.terminalProcess);
 		return procs;
 	},
-	
+
 	/*
 	 * Returns the evals/sec performance of a process by PID
 	 */
@@ -525,7 +532,7 @@ var Processes = {
 		var evalsPerSec = Math.round(evalsPerMS * 1000000)/1000;
 		return evalsPerSec;
 	},
-	
+
 	/*
 	 * Registers a named overlay as belonging to the current process
 	 */
