@@ -1315,28 +1315,28 @@ Here is all of the code needed to be able to run **ed** on ECMAchine:
 Here are some things I'd like to see in ECMAchine:
 
 - Language 
- - Comments
- - Newlines should be preserved when:
-     - writing to files
-     - displaying function contents
+   - Comments
+   - Newlines should be preserved when:
+       - writing to files
+       - displaying function contents
 - Library
- - (accumulate), other higher-order functions?
- - wrappers for the `ajax` function
+   - (accumulate), other higher-order functions?
+   - wrappers for the `ajax` function
 - Processes
- - Should processes (and scripts) have their own environments rather than using global environment?
- - Allow passing arguments to a process/script
- - Refactor processes into a new class (like Filesystem)
- - More accurate performance measurement (rather than just adding up all evals and dividing by total time)
- - Bonus: come up with a simple time-sharing system that works in JavaScript? 
-     - For example, processes could continually adjust their interval in an attempt to reach ~1000 evals/sec systemwide 
-     - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
- - Allow overlays to be draggable?
+   - Should processes (and scripts) have their own environments rather than using global environment?
+   - Allow passing arguments to a process/script
+   - Refactor processes into a new class (like Filesystem)
+   - More accurate performance measurement (rather than just adding up all evals and dividing by total time)
+   - Bonus: come up with a simple time-sharing system that works in JavaScript? 
+       - For example, processes could continually adjust their interval in an attempt to reach ~1000 evals/sec systemwide 
+       - Could timesharing apply to scripts (one-time operations) in addition to processes (recurring operations)?
+   - Allow overlays to be draggable?
 - Programs
- - It would be very cool to actually get some more involved programs working: e.g. a web browser
- - This involves lots of challenges: e.g. how to get user input in a program
+   - It would be very cool to actually get some more involved programs working: e.g. a web browser
+   - This involves lots of challenges: e.g. how to get user input in a program
 - Sessions
-	- User accounts?
-	- Some sort of import/export support?
+    - User accounts?
+    - Some sort of import/export support?
 
 <a name="acknowledgements"></a>
 
