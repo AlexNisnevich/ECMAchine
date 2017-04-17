@@ -673,7 +673,7 @@ ecmachine:/ guest$ (define (search dir name)
 ecmachine:/ guest$ (search '/ 'mapreduce.lsp)
 /startup/mapreduce.lsp
 ecmachine:/ guest$ (search 'apps 'mapreduce.lsp)
-#f
+# f
 ```
 
 What if we want to find all filenames that _contain_ a certain string, rather than just exact matches? We can write a `contains` function for strings using JavaScript's `String.indexOf()` method:
